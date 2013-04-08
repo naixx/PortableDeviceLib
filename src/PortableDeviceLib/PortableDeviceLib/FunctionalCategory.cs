@@ -98,9 +98,6 @@ namespace PortableDeviceLib
 
         private void ExtractContentType(PortableDeviceClass portableDeviceClass, Guid functionalCategory)
         {
-            if (portableDeviceClass == null)
-                throw new ArgumentNullException("portableDeviceClass");
-
             try
             {
                 PortableDeviceApiLib.IPortableDeviceCapabilities capabilities;
