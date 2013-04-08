@@ -12,8 +12,9 @@ namespace PortableDeviceLib.Factories
     /// </summary>
     public class PortableDeviceObjectFactory
     {
+        public delegate PortableDeviceObject FactoryMethodType(PortableDeviceApiLib.IPortableDeviceValues values);
         private static PortableDeviceObjectFactory instance;
-        private Dictionary<Guid, Func<string, string, string , string, PortableDeviceObject>> factoryMethods;
+        private Dictionary<Guid, FactoryMethodType> factoryMethods;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="PortableDeviceObjectFactory"/> class
@@ -21,11 +22,11 @@ namespace PortableDeviceLib.Factories
         /// </summary>
         private PortableDeviceObjectFactory()
         {
-            this.factoryMethods = new Dictionary<Guid, Func<string, string, string, string, PortableDeviceObject>>();
+            this.factoryMethods = new Dictionary<Guid, FactoryMethodType>();
 
             // Register know object type
-            this.RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FOLDER, new Func<string, string, string, string, PortableDeviceObject>(CreateFolderObject));
-            this.RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FUNCTIONAL_OBJECT, new Func<string, string, string, string, PortableDeviceObject>(CreateFunctionalObject));
+            this.RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FOLDER, CreateFolderObject);
+            this.RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FUNCTIONAL_OBJECT, CreateFunctionalObject);
         }
 
         #region Properties
@@ -52,7 +53,7 @@ namespace PortableDeviceLib.Factories
         /// </summary>
         /// <param name="handledType"></param>
         /// <param name="method"></param>
-        public void RegisterNewFactoryMethod(Guid handledType, Func<string, string, string, string, PortableDeviceObject> method)
+        public void RegisterNewFactoryMethod(Guid handledType, FactoryMethodType method)
         {
             if (handledType == Guid.Empty)
                 throw new ArgumentException("handledType cann't be Guid.Empty", "handledType");
@@ -70,44 +71,66 @@ namespace PortableDeviceLib.Factories
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public PortableDeviceObject CreateInstance(Guid type, string id, string name, string contentType, string format)
+        public PortableDeviceObject CreateInstance(Guid type, PortableDeviceApiLib.IPortableDeviceValues values)
         {
             if (this.factoryMethods.ContainsKey(type))
-                return this.factoryMethods[type](id, name, contentType, format);
+                return this.factoryMethods[type](values);
             else
-                return this.CreateGenericObject(id, name, contentType, format);
+                return this.CreateGenericObject(values);
         }
 
         #endregion
 
         #region Private functions
 
-        private PortableDeviceObject CreateFunctionalObject(string id, string name, string contentType, string format)
+        private string GetObjectId(PortableDeviceApiLib.IPortableDeviceValues values)
         {
-            var obj = new PortableDeviceFunctionalObject(id);
-            this.InitializeInstance(obj, name, contentType, format);
+            string value;
+            values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_ID, out value);
+            return value;
+        }
+
+        private PortableDeviceObject CreateFunctionalObject(PortableDeviceApiLib.IPortableDeviceValues values)
+        {
+            var obj = new PortableDeviceFunctionalObject(GetObjectId(values));
+            this.InitializeInstance(obj, values);
+
+            Guid category = new Guid();
+            values.GetGuidValue(ref PortableDevicePKeys.WPD_FUNCTIONAL_OBJECT_CATEGORY, out category);
+            obj.Category = category;
+
             return obj;
         }
 
-        private PortableDeviceObject CreateFolderObject(string id, string name, string contentType, string format)
+        private PortableDeviceObject CreateFolderObject(PortableDeviceApiLib.IPortableDeviceValues values)
         {
-            var obj = new PortableDeviceFolderObject(id);
-            this.InitializeInstance(obj, name, contentType, format);
+            var obj = new PortableDeviceFolderObject(GetObjectId(values));
+            this.InitializeInstance(obj, values);
             return obj;
         }
 
-        private PortableDeviceObject CreateGenericObject(string id, string name, string contentType, string format)
+        private PortableDeviceObject CreateGenericObject(PortableDeviceApiLib.IPortableDeviceValues values)
         {
-            var obj = new PortableDeviceObject(id);
-            this.InitializeInstance(obj, name, contentType, format);
+            var obj = new PortableDeviceObject(GetObjectId(values));
+            this.InitializeInstance(obj, values);
             return obj;
         }
 
-        private void InitializeInstance(PortableDeviceObject obj, string name, string contentType, string format)
+        private void InitializeInstance(PortableDeviceObject obj, PortableDeviceApiLib.IPortableDeviceValues values)
         {
+            string name;
+            values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_NAME, out name);
+
+            var guid = new Guid();
+            values.GetGuidValue(ref PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, out guid);
+            string contentType = PortableDeviceHelpers.GetKeyNameFromGuid(guid);
+
+            values.GetGuidValue(ref PortableDevicePKeys.WPD_OBJECT_FORMAT, out guid);
+            string formatType = PortableDeviceHelpers.GetKeyNameFromGuid(guid);
+
             obj.Name = name;
             obj.ContentType = contentType;
-            obj.Format = format;
+            obj.Format = formatType;
         }
 
         #endregion

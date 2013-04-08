@@ -416,18 +416,10 @@ namespace PortableDeviceLib
             PortableDeviceApiLib.IPortableDeviceValues values;
             properties.GetValues(objectId, keys, out values);
 
-            string tmpVal;
-            string name;
-            values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_NAME, out name);
+            var guid = new Guid();
+            values.GetGuidValue(ref PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, out guid);
 
-            values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, out tmpVal);
-            var guid = new Guid(tmpVal);
-            string contentType = PortableDeviceHelpers.GetKeyNameFromGuid(guid);
-
-            values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_FORMAT, out tmpVal);
-            string formatType = PortableDeviceHelpers.GetKeyNameFromGuid(new Guid(tmpVal));
-
-            return Factories.PortableDeviceObjectFactory.Instance.CreateInstance(guid, objectId, name, contentType, formatType);
+            return Factories.PortableDeviceObjectFactory.Instance.CreateInstance(guid, values);
         }
 
         private void Dispose(bool disposing)

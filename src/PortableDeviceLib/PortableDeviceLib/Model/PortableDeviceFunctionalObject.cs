@@ -19,5 +19,11 @@ namespace PortableDeviceLib.Model
         {
 
         }
+
+        public Guid Category
+        {
+            get;
+            internal set;
+        }
     }
 }
