@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDeviceCollection.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,59 +18,56 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
 using PortableDeviceApiLib;
 
 namespace PortableDeviceLib
 {
-
     /// <summary>
-    /// Manage a collection of <see cref="PortableDeviceLib.PortableDevice"/> from the WPD API Interop
+    ///     Manage a collection of <see cref="PortableDeviceLib.PortableDevice" /> from the WPD API Interop
     /// </summary>
     public class PortableDeviceCollection
     {
         private static PortableDeviceCollection _instance;
 
-        private PortableDeviceManagerClass deviceManager;
-        private uint countDevices = 0;
-        private Dictionary<string, PortableDevice> portableDevices;
-
-        private string appName;
-        private float majorVersion;
-        private float minorVersion;
+        private readonly string appName;
+        private readonly float majorVersion;
+        private readonly float minorVersion;
+        
+        private readonly PortableDeviceManagerClass deviceManager;
+        private readonly Dictionary<string, PortableDevice> portableDevices;
+        private uint countDevices;
 
         /// <summary>
-        /// Private default constructor
+        ///     Private default constructor
         /// </summary>
         private PortableDeviceCollection(string appName, float majorVersion, float minorVersion)
         {
             if (string.IsNullOrEmpty(appName))
                 throw new ArgumentNullException("appName");
 
-            this.deviceManager = new PortableDeviceManagerClass();
-            this.portableDevices = new Dictionary<string, PortableDevice>();
+            deviceManager = new PortableDeviceManagerClass();
+            portableDevices = new Dictionary<string, PortableDevice>();
 
             this.appName = appName;
             this.majorVersion = majorVersion;
             this.minorVersion = minorVersion;
-            this.AutoConnectToPortableDevice = true;
+            AutoConnectToPortableDevice = true;
         }
 
         #region Properties
 
         /// <summary>
-        /// Get or set a value that indicate if we autoconnect to PortableDevice when creating a new instance
+        ///     Get or set a value that indicate if we autoconnect to PortableDevice when creating a new instance
         /// </summary>
-        public bool AutoConnectToPortableDevice
-        {
-            get;
-            set;
-        }
+        public bool AutoConnectToPortableDevice { get; set; }
 
         /// <summary>
-        /// Gets the number of PortableDevice connected
+        ///     Gets the number of PortableDevice connected
         /// </summary>
         public int Count
         {
@@ -81,18 +79,15 @@ namespace PortableDeviceLib
         }
 
         /// <summary>
-        /// Get the device ID list
+        ///     Get the device ID list
         /// </summary>
         public IEnumerable<string> DeviceIds
         {
-            get
-            {
-                return InternalGetDeviceIds();
-            }
+            get { return InternalGetDeviceIds(); }
         }
 
         /// <summary>
-        /// Get the list of devices
+        ///     Get the list of devices
         /// </summary>
         public IEnumerable<PortableDevice> Devices
         {
@@ -107,20 +102,17 @@ namespace PortableDeviceLib
         }
 
         /// <summary>
-        /// Gets or sets the instance of PortableDeviceCollection
+        ///     Gets or sets the instance of PortableDeviceCollection
         /// </summary>
         public static PortableDeviceCollection Instance
         {
-            get
-            {
-                return _instance;
-            }
+            get { return _instance; }
         }
 
         #endregion
 
         /// <summary>
-        /// Get the portable device by his id
+        ///     Get the portable device by his id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
@@ -131,17 +123,17 @@ namespace PortableDeviceLib
 
             if (!portableDevices.ContainsKey(id))
             {
-                PortableDevice portableDevice = new PortableDevice(id);
+                var portableDevice = new PortableDevice(id);
                 if (AutoConnectToPortableDevice)
                     portableDevice.ConnectToDevice(appName, majorVersion, minorVersion);
                 portableDevices.Add(id, portableDevice);
             }
 
-            return this.portableDevices[id];
+            return portableDevices[id];
         }
 
         /// <summary>
-        /// Create the unique instance of PortableDeviceCollection
+        ///     Create the unique instance of PortableDeviceCollection
         /// </summary>
         /// <param name="appName"></param>
         /// <param name="majorVersion"></param>
@@ -157,26 +149,25 @@ namespace PortableDeviceLib
 
         private void RefreshDevices()
         {
-            this.portableDevices.Clear();
-            this.deviceManager.RefreshDeviceList();
+            portableDevices.Clear();
+            deviceManager.RefreshDeviceList();
             uint _countDevices = 1;
-            this.deviceManager.GetDevices(null, ref _countDevices);
-            string[] devicesIds = new string[_countDevices];
-            this.deviceManager.GetDevices(devicesIds, ref _countDevices);
-            this.countDevices = _countDevices;
+            deviceManager.GetDevices(null, ref _countDevices);
+            var devicesIds = new string[_countDevices];
+            deviceManager.GetDevices(devicesIds, ref _countDevices);
+            countDevices = _countDevices;
         }
 
         private string[] InternalGetDeviceIds()
         {
             RefreshDevices();
-            if (this.countDevices <= 0)
+            if (countDevices <= 0)
                 return null;
 
-            string[] deviceIds = new string[this.countDevices];
-            this.deviceManager.GetDevices(deviceIds, ref this.countDevices);
+            var deviceIds = new string[countDevices];
+            deviceManager.GetDevices(deviceIds, ref countDevices);
 
             return deviceIds;
         }
-
     }
 }

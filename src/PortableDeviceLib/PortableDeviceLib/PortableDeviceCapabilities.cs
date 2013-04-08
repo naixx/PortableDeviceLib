@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDeviceCapabilities.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,75 +18,69 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using PortableDeviceApiLib;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Reflection;
+using PortableDeviceApiLib;
 using PortableDeviceLib.Model;
+using PortableDeviceTypesLib;
+using IPortableDeviceKeyCollection = PortableDeviceApiLib.IPortableDeviceKeyCollection;
+using IPortableDevicePropVariantCollection = PortableDeviceApiLib.IPortableDevicePropVariantCollection;
+using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
+using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
+using tag_inner_PROPVARIANT = PortableDeviceApiLib.tag_inner_PROPVARIANT;
 
 namespace PortableDeviceLib
 {
     /// <summary>
-    /// Represent the device capabilities
+    ///     Represent the device capabilities
     /// </summary>
     public class PortableDeviceCapabilities
     {
-
-        private Dictionary<Guid, FunctionalCategory> functionalCategories;
-        private Dictionary<string, _tagpropertykey> commands;
-        private Dictionary<PortableDeviceEventDescription, _tagpropertykey> events;
+        private readonly Dictionary<string, _tagpropertykey> commands;
+        private readonly Dictionary<PortableDeviceEventDescription, _tagpropertykey> events;
+        private readonly Dictionary<Guid, FunctionalCategory> functionalCategories;
 
         /// <summary>
-        /// Default constructor
+        ///     Default constructor
         /// </summary>
         internal PortableDeviceCapabilities()
         {
-            this.functionalCategories = new Dictionary<Guid, FunctionalCategory>();
-            this.commands = new Dictionary<string, _tagpropertykey>();
-            this.events = new Dictionary<PortableDeviceEventDescription, _tagpropertykey>();
+            functionalCategories = new Dictionary<Guid, FunctionalCategory>();
+            commands = new Dictionary<string, _tagpropertykey>();
+            events = new Dictionary<PortableDeviceEventDescription, _tagpropertykey>();
         }
 
         /// <summary>
-        /// Gets all functional categories
+        ///     Gets all functional categories
         /// </summary>
         public IEnumerable<FunctionalCategory> FunctionalCategories
         {
-            get
-            {
-                return this.functionalCategories.Values;
-            }
+            get { return functionalCategories.Values; }
         }
 
         /// <summary>
-        /// Gets commands from devices
+        ///     Gets commands from devices
         /// </summary>
         public IEnumerable<string> Commands
         {
-            get
-            {
-                return this.commands.Keys;
-            }
+            get { return commands.Keys; }
         }
 
         /// <summary>
-        /// Gets supported events
+        ///     Gets supported events
         /// </summary>
         public IEnumerable<PortableDeviceEventDescription> Events
         {
-            get
-            {
-                return this.events.Keys;
-            }
+            get { return events.Keys; }
         }
 
         /// <summary>
-        /// Extract device capabilities
+        ///     Extract device capabilities
         /// </summary>
         /// <param name="portableDeviceClass"></param>
         internal void ExtractDeviceCapabilities(PortableDeviceClass portableDeviceClass)
@@ -95,7 +90,7 @@ namespace PortableDeviceLib
 
             try
             {
-                PortableDeviceApiLib.IPortableDeviceCapabilities capabilities;
+                IPortableDeviceCapabilities capabilities;
                 portableDeviceClass.Capabilities(out capabilities);
 
                 if (capabilities == null)
@@ -114,25 +109,23 @@ namespace PortableDeviceLib
 
                 uint countCategories = 1;
                 functionalCategories.GetCount(ref countCategories);
-                tag_inner_PROPVARIANT values = new tag_inner_PROPVARIANT();
+                var values = new tag_inner_PROPVARIANT();
 
                 string categoryName;
                 Guid currentGuid;
                 for (uint i = 0; i < countCategories; i++)
                 {
                     functionalCategories.GetAt(i, ref values);
-                    PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+                    var pValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
 
                     pValues.SetValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_FUNCTIONAL_CATEGORIES, ref values);
                     pValues.GetStringValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_FUNCTIONAL_CATEGORIES, out categoryName);
                     currentGuid = new Guid(categoryName);
                     this.functionalCategories.Add(currentGuid, new FunctionalCategory(
-                        portableDeviceClass,
-                        currentGuid,
-                        PortableDeviceHelpers.GetKeyNameFromGuid(currentGuid)));
-
+                                                                   portableDeviceClass,
+                                                                   currentGuid,
+                                                                   PortableDeviceHelpers.GetKeyNameFromGuid(currentGuid)));
                 }
-
             }
             catch (Exception ex)
             {
@@ -141,18 +134,18 @@ namespace PortableDeviceLib
         }
 
         /// <summary>
-        /// Extract command supported by device
+        ///     Extract command supported by device
         /// </summary>
         /// <param name="portableDeviceClass"></param>
         internal void ExtractCommands(PortableDeviceClass portableDeviceClass)
         {
-            PortableDeviceApiLib.IPortableDeviceCapabilities capabilities;
+            IPortableDeviceCapabilities capabilities;
             portableDeviceClass.Capabilities(out capabilities);
 
-            PortableDeviceApiLib.IPortableDeviceKeyCollection values;
+            IPortableDeviceKeyCollection values;
             capabilities.GetSupportedCommands(out values);
 
-            _tagpropertykey key = new _tagpropertykey();
+            var key = new _tagpropertykey();
             _tagpropertykey tt;
             string currentName;
 
@@ -163,38 +156,37 @@ namespace PortableDeviceLib
                 values.GetAt(i, ref key);
 
                 currentName = string.Empty;
-                foreach (FieldInfo fi in typeof(PortableDevicePKeys).GetFields())
+                foreach (FieldInfo fi in typeof (PortableDevicePKeys).GetFields())
                 {
-                    tt = (_tagpropertykey)fi.GetValue(null);
+                    tt = (_tagpropertykey) fi.GetValue(null);
                     if (key.fmtid == tt.fmtid && key.pid == tt.pid)
                         currentName = fi.Name;
                 }
 
                 if (!string.IsNullOrEmpty(currentName))
-                    this.commands.Add(currentName, key);
+                    commands.Add(currentName, key);
                 else
-                    this.commands.Add(key.pid + " " + key.fmtid, key);
-
+                    commands.Add(key.pid + " " + key.fmtid, key);
             }
         }
 
         /// <summary>
-        /// Extract event supported by device
+        ///     Extract event supported by device
         /// </summary>
         /// <param name="portableDeviceClass"></param>
         internal void ExtractEvents(PortableDeviceClass portableDeviceClass)
         {
-            PortableDeviceApiLib.IPortableDeviceCapabilities capabilities;
+            IPortableDeviceCapabilities capabilities;
             portableDeviceClass.Capabilities(out capabilities);
 
-            PortableDeviceApiLib.IPortableDevicePropVariantCollection events;
+            IPortableDevicePropVariantCollection events;
             capabilities.GetSupportedEvents(out events);
 
             uint countEvents = 0;
             events.GetCount(ref countEvents);
 
-            PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
-            tag_inner_PROPVARIANT evt = new tag_inner_PROPVARIANT();
+            var pValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
+            var evt = new tag_inner_PROPVARIANT();
 
             Guid eventName;
             IPortableDeviceValues eventOptions;
@@ -210,11 +202,11 @@ namespace PortableDeviceLib
 
                 //Retrieve options
                 try
-                { // Event option isn't always present, so ...
-                    eventOptions = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+                {
+                    // Event option isn't always present, so ...
+                    eventOptions = (IPortableDeviceValues) new PortableDeviceValuesClass();
                     capabilities.GetEventOptions(ref eventName, out eventOptions);
 
-                   
 
                     //eventOptions.GetBoolValue(ref PortableDevicePKeys.WPD_EVENT_OPTION_IS_AUTOPLAY_EVENT, out isAutoPlayEvent);
                     //eventOptions.GetBoolValue(ref PortableDevicePKeys.WPD_EVENT_OPTION_IS_BROADCAST_EVENT, out isBroadcastEvent);
@@ -240,7 +232,7 @@ namespace PortableDeviceLib
                     Debug.WriteLine(ex.Message);
                     Debug.WriteLine(ex.StackTrace);
                 }
-                
+
                 this.events.Add(eventDescription, PortableDevicePKeys.WPD_EVENT_PARAMETER_EVENT_ID);
             }
         }

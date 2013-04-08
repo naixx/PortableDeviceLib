@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 ContentType.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,26 +18,28 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using PortableDeviceApiLib;
+using PortableDeviceTypesLib;
+using IPortableDevicePropVariantCollection = PortableDeviceApiLib.IPortableDevicePropVariantCollection;
+using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
+using tag_inner_PROPVARIANT = PortableDeviceApiLib.tag_inner_PROPVARIANT;
 
 namespace PortableDeviceLib
 {
     /// <summary>
-    /// 
     /// </summary>
     public class ContentType
     {
-
-        private Dictionary<Guid, string> formats;
+        private readonly Dictionary<Guid, string> formats;
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="ContentType"/> class
+        ///     Initialize a new instance of the <see cref="ContentType" /> class
         /// </summary>
         /// <param name="portableDeviceClass"></param>
         /// <param name="guid"></param>
@@ -49,39 +52,28 @@ namespace PortableDeviceLib
                 throw new ArgumentNullException("name");
 
             formats = new Dictionary<Guid, string>();
-            this.Guid = guid;
-            this.Name = name;
+            Guid = guid;
+            Name = name;
 
-            this.ExtractSupportedFormat(portableDeviceClass, guid);
+            ExtractSupportedFormat(portableDeviceClass, guid);
         }
 
         /// <summary>
-        /// Gets or sets the guid of the content type
+        ///     Gets or sets the guid of the content type
         /// </summary>
-        public Guid Guid
-        {
-            get;
-            private set;
-        }
+        public Guid Guid { get; private set; }
 
         /// <summary>
-        /// Gets or sets the name of the content type
+        ///     Gets or sets the name of the content type
         /// </summary>
-        public string Name
-        {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
 
         /// <summary>
-        /// Gets or sets the supported format
+        ///     Gets or sets the supported format
         /// </summary>
         public IEnumerable<string> SupportedFormats
         {
-            get
-            {
-                return formats.Values;
-            }
+            get { return formats.Values; }
         }
 
         private void ExtractSupportedFormat(PortableDeviceClass portableDeviceClass, Guid contentType)
@@ -89,23 +81,23 @@ namespace PortableDeviceLib
             if (portableDeviceClass == null)
                 throw new PortableDeviceException("");
 
-            PortableDeviceApiLib.IPortableDeviceCapabilities capabilities;
+            IPortableDeviceCapabilities capabilities;
             portableDeviceClass.Capabilities(out capabilities);
 
             if (capabilities == null)
             {
-                System.Diagnostics.Trace.WriteLine("Cannot extract capabilities from device");
+                Trace.WriteLine("Cannot extract capabilities from device");
                 throw new PortableDeviceException("Cannot extract capabilities from device");
             }
 
 
-            PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+            var pValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
 
 
             //Functional objects variables
             IPortableDevicePropVariantCollection formats;
             uint countObjects = 1;
-            tag_inner_PROPVARIANT values = new tag_inner_PROPVARIANT();
+            var values = new tag_inner_PROPVARIANT();
             string formatName;
             Guid currentFormat;
             capabilities.GetSupportedFormats(ref contentType, out formats);
@@ -120,7 +112,6 @@ namespace PortableDeviceLib
                 currentFormat = new Guid(formatName);
                 this.formats[currentFormat] = PortableDeviceHelpers.GetKeyNameFromGuid(currentFormat);
             }
-
         }
     }
 }

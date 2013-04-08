@@ -1,47 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace PortableDeviceLib.Model
 {
     /// <summary>
-    /// Represent an object that can contains other objects
+    ///     Represent an object that can contains other objects
     /// </summary>
     public class PortableDeviceContainerObject : PortableDeviceObject
     {
-        private ObservableCollection<PortableDeviceObject> childs;
+        private readonly ObservableCollection<PortableDeviceObject> childs;
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="PortableDeviceContainerObject"/> class
+        ///     Initialize a new instance of the <see cref="PortableDeviceContainerObject" /> class
         /// </summary>
         /// <param name="id"></param>
         public PortableDeviceContainerObject(string id)
             : base(id)
         {
-            this.childs = new ObservableCollection<PortableDeviceObject>();
-            this.Childs = new ReadOnlyObservableCollection<PortableDeviceObject>(this.childs);
+            childs = new ObservableCollection<PortableDeviceObject>();
+            Childs = new ReadOnlyObservableCollection<PortableDeviceObject>(childs);
         }
 
         /// <summary>
-        /// Gets the childs of this object
+        ///     Gets the childs of this object
         /// </summary>
-        public ReadOnlyObservableCollection<PortableDeviceObject> Childs
-        {
-            get;
-            private set;
-        }
+        public ReadOnlyObservableCollection<PortableDeviceObject> Childs { get; private set; }
 
         /// <summary>
-        /// Add a child in collection
+        ///     Add a child in collection
         /// </summary>
         /// <param name="child"></param>
         internal void AddChild(PortableDeviceObject child)
         {
-            if (this.childs.Contains(child))
+            if (childs.Contains(child))
                 return;
-            this.childs.Add(child);
+            childs.Add(child);
         }
     }
 }

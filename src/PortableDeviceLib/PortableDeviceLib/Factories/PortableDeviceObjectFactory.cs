@@ -1,38 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using PortableDeviceApiLib;
 using PortableDeviceLib.Model;
 
 namespace PortableDeviceLib.Factories
 {
     /// <summary>
-    /// Represent a factory that can build <see cref="PortableDeviceObject"/>
-    /// You can register new method to handle new object types
+    ///     Represent a factory that can build <see cref="PortableDeviceObject" />
+    ///     You can register new method to handle new object types
     /// </summary>
     public class PortableDeviceObjectFactory
     {
-        public delegate PortableDeviceObject FactoryMethodType(PortableDeviceApiLib.IPortableDeviceValues values);
+        public delegate PortableDeviceObject FactoryMethodType(IPortableDeviceValues values);
+
         private static PortableDeviceObjectFactory instance;
-        private Dictionary<Guid, FactoryMethodType> factoryMethods;
+        private readonly Dictionary<Guid, FactoryMethodType> factoryMethods;
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="PortableDeviceObjectFactory"/> class
-        /// This is a private constructor to support Singleton pattern
+        ///     Initialize a new instance of the <see cref="PortableDeviceObjectFactory" /> class
+        ///     This is a private constructor to support Singleton pattern
         /// </summary>
         private PortableDeviceObjectFactory()
         {
-            this.factoryMethods = new Dictionary<Guid, FactoryMethodType>();
+            factoryMethods = new Dictionary<Guid, FactoryMethodType>();
 
             // Register know object type
-            this.RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FOLDER, CreateFolderObject);
-            this.RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FUNCTIONAL_OBJECT, CreateFunctionalObject);
+            RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FOLDER, CreateFolderObject);
+            RegisterNewFactoryMethod(PortableDeviceGuids.WPD_CONTENT_TYPE_FUNCTIONAL_OBJECT, CreateFunctionalObject);
         }
 
         #region Properties
 
         /// <summary>
-        /// Gets the unique instance of factory
+        ///     Gets the unique instance of factory
         /// </summary>
         public static PortableDeviceObjectFactory Instance
         {
@@ -44,7 +44,7 @@ namespace PortableDeviceLib.Factories
         #region Public functions
 
         /// <summary>
-        /// Register a new factory method that enable create new object type
+        ///     Register a new factory method that enable create new object type
         /// </summary>
         /// <param name="handledType"></param>
         /// <param name="method"></param>
@@ -55,63 +55,63 @@ namespace PortableDeviceLib.Factories
             if (method == null)
                 throw new ArgumentNullException("method");
 
-            if (this.factoryMethods.ContainsKey(handledType))
+            if (factoryMethods.ContainsKey(handledType))
                 throw new ArgumentException(string.Format("Guid {0} is already registered", handledType), "handledType");
 
-            this.factoryMethods.Add(handledType, method);
+            factoryMethods.Add(handledType, method);
         }
 
         /// <summary>
-        /// Create a new instance of a portableDeviceObject or derived from type
+        ///     Create a new instance of a portableDeviceObject or derived from type
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public PortableDeviceObject CreateInstance(Guid type, PortableDeviceApiLib.IPortableDeviceValues values)
+        public PortableDeviceObject CreateInstance(Guid type, IPortableDeviceValues values)
         {
-            if (this.factoryMethods.ContainsKey(type))
-                return this.factoryMethods[type](values);
+            if (factoryMethods.ContainsKey(type))
+                return factoryMethods[type](values);
             else
-                return this.CreateGenericObject(values);
+                return CreateGenericObject(values);
         }
 
         #endregion
 
         #region Private functions
 
-        private string GetObjectId(PortableDeviceApiLib.IPortableDeviceValues values)
+        private string GetObjectId(IPortableDeviceValues values)
         {
             string value;
             values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_ID, out value);
             return value;
         }
 
-        private PortableDeviceObject CreateFunctionalObject(PortableDeviceApiLib.IPortableDeviceValues values)
+        private PortableDeviceObject CreateFunctionalObject(IPortableDeviceValues values)
         {
             var obj = new PortableDeviceFunctionalObject(GetObjectId(values));
-            this.InitializeInstance(obj, values);
+            InitializeInstance(obj, values);
 
-            Guid category = new Guid();
+            var category = new Guid();
             values.GetGuidValue(ref PortableDevicePKeys.WPD_FUNCTIONAL_OBJECT_CATEGORY, out category);
             obj.Category = category;
 
             return obj;
         }
 
-        private PortableDeviceObject CreateFolderObject(PortableDeviceApiLib.IPortableDeviceValues values)
+        private PortableDeviceObject CreateFolderObject(IPortableDeviceValues values)
         {
             var obj = new PortableDeviceFolderObject(GetObjectId(values));
-            this.InitializeInstance(obj, values);
+            InitializeInstance(obj, values);
             return obj;
         }
 
-        private PortableDeviceObject CreateGenericObject(PortableDeviceApiLib.IPortableDeviceValues values)
+        private PortableDeviceObject CreateGenericObject(IPortableDeviceValues values)
         {
             var obj = new PortableDeviceObject(GetObjectId(values));
-            this.InitializeInstance(obj, values);
+            InitializeInstance(obj, values);
             return obj;
         }
 
-        private void InitializeInstance(PortableDeviceObject obj, PortableDeviceApiLib.IPortableDeviceValues values)
+        private void InitializeInstance(PortableDeviceObject obj, IPortableDeviceValues values)
         {
             string name;
             values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_NAME, out name);
@@ -129,6 +129,5 @@ namespace PortableDeviceLib.Factories
         }
 
         #endregion
-
     }
 }

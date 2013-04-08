@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 FunctionalCategory.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,25 +18,29 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
 using PortableDeviceApiLib;
+using PortableDeviceTypesLib;
+using IPortableDevicePropVariantCollection = PortableDeviceApiLib.IPortableDevicePropVariantCollection;
+using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
+using tag_inner_PROPVARIANT = PortableDeviceApiLib.tag_inner_PROPVARIANT;
 
 namespace PortableDeviceLib
 {
     /// <summary>
-    /// Represent a functional category and supported content type
+    ///     Represent a functional category and supported content type
     /// </summary>
     public class FunctionalCategory
     {
-
-        private Dictionary<Guid, ContentType> contentTypes;
+        private readonly Dictionary<Guid, ContentType> contentTypes;
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="FunctionalCategory"/> class
+        ///     Initialize a new instance of the <see cref="FunctionalCategory" /> class
         /// </summary>
         /// <param name="portableDeviceClass"></param>
         /// <param name="guid"></param>
@@ -46,77 +51,66 @@ namespace PortableDeviceLib
                 throw new ArgumentException("guid cann't be Guid.Empty");
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentNullException("name");
-            this.contentTypes = new Dictionary<Guid, ContentType>();
+            contentTypes = new Dictionary<Guid, ContentType>();
 
-            this.Guid = guid;
-            this.Name = name;
+            Guid = guid;
+            Name = name;
 
-            this.ExtractContentType(portableDeviceClass, guid);
+            ExtractContentType(portableDeviceClass, guid);
         }
 
         /// <summary>
-        /// Get the guid of this functional category
-        /// You can use it with PortableDeviceCabilities
+        ///     Get the guid of this functional category
+        ///     You can use it with PortableDeviceCabilities
         /// </summary>
-        public Guid Guid
-        {
-            get;
-            private set;
-        }
+        public Guid Guid { get; private set; }
 
         /// <summary>
-        /// Get the name of this functional category
+        ///     Get the name of this functional category
         /// </summary>
-        public string Name
-        {
-            get;
-            private set;
-        }
+        public string Name { get; private set; }
 
         /// <summary>
-        /// Get all content types in this category
+        ///     Get all content types in this category
         /// </summary>
         public IEnumerable<ContentType> ContentTypes
         {
-            get
-            {
-                return this.contentTypes.Values;
-            }
+            get { return contentTypes.Values; }
         }
 
         /// <summary>
-        /// <see cref="System.Object.ToString()"/>
+        ///     <see cref="System.Object.ToString()" />
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            if (!string.IsNullOrEmpty(this.Name))
-                return this.Name;
+            if (!string.IsNullOrEmpty(Name))
+                return Name;
             else
-                return this.Guid.ToString();
+                return Guid.ToString();
         }
 
         private void ExtractContentType(PortableDeviceClass portableDeviceClass, Guid functionalCategory)
         {
             try
             {
-                PortableDeviceApiLib.IPortableDeviceCapabilities capabilities;
+                IPortableDeviceCapabilities capabilities;
                 portableDeviceClass.Capabilities(out capabilities);
 
                 if (capabilities == null)
                 {
-                    System.Diagnostics.Trace.WriteLine("Cannot extract capabilities from device");
+                    Trace.WriteLine("Cannot extract capabilities from device");
                     throw new PortableDeviceException("Cannot extract capabilities from device");
                 }
 
 
-                PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+                var pValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
 
 
                 //Functional objects variables
                 IPortableDevicePropVariantCollection contentTypes;
                 uint countObjects = 1;
-                tag_inner_PROPVARIANT values = new tag_inner_PROPVARIANT();
+                var values = new tag_inner_PROPVARIANT();
                 string contentTypeName;
                 Guid currentContentTypeGuid;
                 capabilities.GetSupportedContentTypes(ref functionalCategory, out contentTypes);
@@ -130,17 +124,15 @@ namespace PortableDeviceLib
                     pValues.GetStringValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_CONTENT_TYPES, out contentTypeName);
                     currentContentTypeGuid = new Guid(contentTypeName);
                     this.contentTypes.Add(currentContentTypeGuid, new ContentType(
-                        portableDeviceClass,
-                        currentContentTypeGuid,
-                        PortableDeviceHelpers.GetKeyNameFromGuid(currentContentTypeGuid)));
+                                                                      portableDeviceClass,
+                                                                      currentContentTypeGuid,
+                                                                      PortableDeviceHelpers.GetKeyNameFromGuid(currentContentTypeGuid)));
                 }
-
             }
             catch (Exception ex)
             {
                 throw new PortableDeviceException("Error on extract functional object", ex);
             }
         }
-
     }
 }

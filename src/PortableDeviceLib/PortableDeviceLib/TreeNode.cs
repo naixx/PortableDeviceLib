@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 TreeNode.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,71 +18,54 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace PortableDeviceLib
 {
     public class TreeNode<T> : IEnumerable<TreeNode<T>>, ITreeNode
     {
-
-        private List<TreeNode<T>> childs;
+        private readonly List<TreeNode<T>> childs;
 
         public TreeNode(TreeNode<T> parent)
         {
-            this.childs = new List<TreeNode<T>>();
-            this.Parent = parent;
+            childs = new List<TreeNode<T>>();
+            Parent = parent;
         }
 
         public TreeNode(TreeNode<T> parent, T value)
             : this(parent)
         {
-            this.Value = value;
+            Value = value;
         }
 
-        public TreeNode<T> Parent
-        {
-            get;
-            private set;
-        }
+        public TreeNode<T> Parent { get; private set; }
 
         public TreeNode<T> this[int index]
         {
-            get
-            {
-                return this.childs[index];
-            }
+            get { return childs[index]; }
         }
 
         public IEnumerable<TreeNode<T>> Childs
         {
-            get
-            {
-                return this.childs;
-            }
+            get { return childs; }
         }
 
         public int Count
         {
-            get
-            {
-                return this.childs.Count;
-            }
+            get { return childs.Count; }
         }
 
-        public T Value
-        {
-            get;
-            set;
-        }
+        public T Value { get; set; }
 
         public TreeNode<T> AddChild(T value)
         {
-            TreeNode<T> child = new TreeNode<T>(this, value);
-            this.AddChild(child);
+            var child = new TreeNode<T>(this, value);
+            AddChild(child);
             return child;
         }
 
@@ -90,7 +74,7 @@ namespace PortableDeviceLib
             if (child == null)
                 throw new ArgumentNullException("child");
 
-            this.childs.Add(child);
+            childs.Add(child);
         }
 
         public void RemoveChild(TreeNode<T> child)
@@ -98,16 +82,16 @@ namespace PortableDeviceLib
             if (child == null)
                 throw new ArgumentNullException("child");
 
-            this.childs.Remove(child);
+            childs.Remove(child);
         }
 
         public TreeNode<T> RemoveChild(int index)
         {
-            if (index < 0 || index >= this.childs.Count)
+            if (index < 0 || index >= childs.Count)
                 throw new ArgumentOutOfRangeException("index");
 
-            TreeNode<T> child = this.childs[index];
-            this.childs.RemoveAt(index);
+            TreeNode<T> child = childs[index];
+            childs.RemoveAt(index);
             return child;
         }
 
@@ -115,16 +99,16 @@ namespace PortableDeviceLib
 
         public IEnumerator<TreeNode<T>> GetEnumerator()
         {
-            return this.childs.GetEnumerator();
+            return childs.GetEnumerator();
         }
 
         #endregion
 
         #region IEnumerable Members
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            return this.childs.GetEnumerator();
+            return childs.GetEnumerator();
         }
 
         #endregion

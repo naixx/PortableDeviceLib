@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDeviceException.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,34 +18,33 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Runtime.Serialization;
 
 namespace PortableDeviceLib
 {
     public class PortableDeviceException : Exception
     {
-
-        public PortableDeviceException() :
-            base()
-        { }
+        public PortableDeviceException()
+        {
+        }
 
         public PortableDeviceException(string message) :
             base(message)
-        { }
+        {
+        }
 
         public PortableDeviceException(string message, Exception innerException)
             : base(message, innerException)
-        { }
+        {
+        }
 
         public PortableDeviceException(SerializationInfo info, StreamingContext context)
             : base(info, context)
-        { }
-
-
+        {
+        }
     }
 }

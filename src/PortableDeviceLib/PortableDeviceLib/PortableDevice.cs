@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDevice.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,58 +18,51 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PortableDeviceApiLib;
-using System.Runtime.InteropServices;
-using PortableDeviceLib.Model;
 using System.ComponentModel;
+using PortableDeviceApiLib;
+using PortableDeviceLib.Factories;
+using PortableDeviceLib.Model;
+using PortableDeviceTypesLib;
+using IPortableDeviceKeyCollection = PortableDeviceApiLib.IPortableDeviceKeyCollection;
+using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
+using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
 
 namespace PortableDeviceLib
 {
     /// <summary>
-    /// Represent a portable device
+    ///     Represent a portable device
     /// </summary>
     public class PortableDevice : IDisposable, INotifyPropertyChanged
     {
-        /// <summary>
-        /// Event sended when portable device raise an event
-        /// </summary>
-        public event EventHandler<PortableDeviceEventArgs> DeviceEvent;
-
-        /// <summary>
-        /// <see cref="System.ComponentModel.INotifyPropertyChanged"/>
-        /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private object dispatcher; //Use an object for thread safety
-
-        private PortableDeviceApiLib.PortableDeviceClass portableDeviceClass;
-        private Dictionary<string, object> values;
-        private PortableDeviceCapabilities deviceCapabilities;
-        private PortableDeviceFunctionalObject content;
+        private readonly object dispatcher; //Use an object for thread safety
 
         private string adviseCookie;
+        private PortableDeviceFunctionalObject content;
+        private PortableDeviceCapabilities deviceCapabilities;
         private PortableDeviceEventCallback eventCallback;
+        private PortableDeviceClass portableDeviceClass;
+        private Dictionary<string, object> values;
 
         #region Constructors
 
         /// <summary>
-        /// Default constructor
+        ///     Default constructor
         /// </summary>
         /// <param name="deviceId"></param>
         internal PortableDevice(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId))
                 throw new ArgumentNullException("deviceId");
-            this.dispatcher = new object();
-            this.portableDeviceClass = new PortableDeviceApiLib.PortableDeviceClass();
-            this.values = new Dictionary<string, object>();
+            dispatcher = new object();
+            portableDeviceClass = new PortableDeviceClass();
+            values = new Dictionary<string, object>();
 
-            this.DeviceId = deviceId;
+            DeviceId = deviceId;
         }
 
         #endregion
@@ -76,110 +70,78 @@ namespace PortableDeviceLib
         #region Properties
 
         /// <summary>
-        /// Gets the device ID
+        ///     Gets the device ID
         /// </summary>
-        public string DeviceId
-        {
-            get;
-            private set;
-        }
+        public string DeviceId { get; private set; }
 
         /// <summary>
-        /// Gets a value 
+        ///     Gets a value
         /// </summary>
-        public bool IsConnected
-        {
-            get;
-            private set;
-        }
+        public bool IsConnected { get; private set; }
 
         /// <summary>
-        /// Gets the Friendly name of the device
+        ///     Gets the Friendly name of the device
         /// </summary>
         public string FriendlyName
         {
-            get
-            {
-                return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME);
-            }
+            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME); }
         }
 
         /// <summary>
-        /// Gets the battery level of the device
+        ///     Gets the battery level of the device
         /// </summary>
         public int BatteryLevel
         {
-            get
-            {
-                return GetIntegerProperty(PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL);
-            }
+            get { return GetIntegerProperty(PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL); }
         }
 
         /// <summary>
-        /// Gets the device model
+        ///     Gets the device model
         /// </summary>
         public string Model
         {
-            get
-            {
-                return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_MODEL);
-            }
+            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_MODEL); }
         }
 
         /// <summary>
-        /// Gets the firmware version
+        ///     Gets the firmware version
         /// </summary>
         public string FirmwareVersion
         {
-            get
-            {
-                return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION);
-            }
+            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION); }
         }
 
         /// <summary>
-        /// Gets the serial number of device
+        ///     Gets the serial number of device
         /// </summary>
         public string SerialNumber
         {
-            get
-            {
-                return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER);
-            }
+            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER); }
         }
 
         /// <summary>
-        /// Gets the device type
+        ///     Gets the device type
         /// </summary>
         public string DeviceType
         {
-            get
-            {
-                return this.GetStringProperty(PortableDevicePKeys.WPD_DEVICE_TYPE);
-            }
+            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_TYPE); }
         }
 
         /// <summary>
-        /// Gets the capabilities of the device
+        ///     Gets the capabilities of the device
         /// </summary>
         public PortableDeviceCapabilities DeviceCapabilities
         {
-            get
-            {
-                return deviceCapabilities;
-            }
+            get { return deviceCapabilities; }
         }
 
         /// <summary>
-        /// Gets all content from device
-        /// If return is null be sure you call <see cref="PortableDevice.RefreshContent()"/> before
+        ///     Gets all content from device
+        ///     If return is null be sure you call <see cref="PortableDevice.RefreshContent()" /> before
         /// </summary>
         public PortableDeviceFunctionalObject Content
         {
-            get
-            {
-                return content;
-            }
+            get { return content; }
         }
 
         #endregion
@@ -187,7 +149,16 @@ namespace PortableDeviceLib
         #region Public functions
 
         /// <summary>
-        /// Connect to the portable device
+        ///     Dispose the unmanaged resource
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        ///     Connect to the portable device
         /// </summary>
         /// <param name="appName"></param>
         /// <param name="majorVersionNumber"></param>
@@ -198,7 +169,7 @@ namespace PortableDeviceLib
                 throw new ArgumentNullException("appName");
 
             //Creating propValues for connection
-            IPortableDeviceValues clientValues = (IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+            var clientValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
 
             //Set the application name
             _tagpropertykey prop = PortableDevicePKeys.WPD_CLIENT_NAME;
@@ -211,58 +182,56 @@ namespace PortableDeviceLib
             clientValues.SetFloatValue(ref prop, minorVersionNumber);
 
             //Open connection
-            this.portableDeviceClass.Open(this.DeviceId, clientValues);
+            portableDeviceClass.Open(DeviceId, clientValues);
 
             //Extract device capabilities
-            this.ExtractDeviceCapabilities();
+            ExtractDeviceCapabilities();
 
-            this.eventCallback = new PortableDeviceEventCallback(this);
+            eventCallback = new PortableDeviceEventCallback(this);
             // According to documentation pParameters should be null (see http://msdn.microsoft.com/en-us/library/dd375684%28v=VS.85%29.aspx )
-            this.portableDeviceClass.Advise(0, this.eventCallback, null, out this.adviseCookie);
+            portableDeviceClass.Advise(0, eventCallback, null, out adviseCookie);
 
             IsConnected = true;
         }
 
         /// <summary>
-        /// Disconnect from device
+        ///     Disconnect from device
         /// </summary>
         public void Disconnect()
         {
-            if (!this.IsConnected)
+            if (!IsConnected)
                 return;
 
-            this.portableDeviceClass.Unadvise(this.adviseCookie);
-            this.eventCallback = null;
-            this.IsConnected = false;
+            portableDeviceClass.Unadvise(adviseCookie);
+            eventCallback = null;
+            IsConnected = false;
         }
 
         /// <summary>
-        /// Refresh content from device
+        ///     Refresh content from device
         /// </summary>
         public void RefreshContent()
         {
-            this.StartEnumerate();
+            StartEnumerate();
         }
 
         /// <summary>
-        /// Execute the specified command
+        ///     Execute the specified command
         /// </summary>
         /// <param name="command"></param>
         public void ExecuteCommand(_tagpropertykey command)
         {
-            IPortableDeviceValues commandValues = (IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+            var commandValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
             IPortableDeviceValues results;
 
             commandValues.SetGuidValue(ref PortableDevicePKeys.WPD_PROPERTY_COMMON_COMMAND_CATEGORY, ref command.fmtid);
             commandValues.SetUnsignedIntegerValue(ref PortableDevicePKeys.WPD_PROPERTY_COMMON_COMMAND_ID, command.pid);
 
             // According to documentation, first parameter should be 0 (see http://msdn.microsoft.com/en-us/library/dd375691%28v=VS.85%29.aspx)
-            this.portableDeviceClass.SendCommand(0, commandValues, out results);
-
+            portableDeviceClass.SendCommand(0, commandValues, out results);
         }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -273,27 +242,18 @@ namespace PortableDeviceLib
                 return DeviceId;
         }
 
-        /// <summary>
-        /// Dispose the unmanaged resource
-        /// </summary>
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         #endregion
 
         #region Protected functions
 
         /// <summary>
-        /// Raise the <see cref="PropertyChanged"/> event
+        ///     Raise the <see cref="PropertyChanged" /> event
         /// </summary>
         /// <param name="propertyName"></param>
         protected void RaisePropertyChanged(string propertyName)
         {
-            if (this.PropertyChanged != null)
-                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            if (PropertyChanged != null)
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #endregion
@@ -301,13 +261,13 @@ namespace PortableDeviceLib
         #region Internal functions
 
         /// <summary>
-        /// Raise event from device
+        ///     Raise event from device
         /// </summary>
         internal void RaiseEvent(PortableDeviceEventType eventType)
         {
-            if (this.DeviceEvent != null)
+            if (DeviceEvent != null)
             {
-                this.DeviceEvent(this, new PortableDeviceEventArgs(eventType));
+                DeviceEvent(this, new PortableDeviceEventArgs(eventType));
             }
         }
 
@@ -322,9 +282,9 @@ namespace PortableDeviceLib
 
             IPortableDeviceContent content;
             IPortableDeviceProperties properties;
-            PortableDeviceApiLib.IPortableDeviceValues propertyValues;
+            IPortableDeviceValues propertyValues;
 
-            this.portableDeviceClass.Content(out content);
+            portableDeviceClass.Content(out content);
             content.Properties(out properties);
 
             properties.GetValues("DEVICE", null, out propertyValues);
@@ -342,9 +302,9 @@ namespace PortableDeviceLib
 
             IPortableDeviceContent content;
             IPortableDeviceProperties properties;
-            PortableDeviceApiLib.IPortableDeviceValues propertyValues;
+            IPortableDeviceValues propertyValues;
 
-            this.portableDeviceClass.Content(out content);
+            portableDeviceClass.Content(out content);
             content.Properties(out properties);
             properties.GetValues("DEVICE", null, out propertyValues);
 
@@ -362,32 +322,31 @@ namespace PortableDeviceLib
         private void ExtractDeviceCapabilities()
         {
             deviceCapabilities = new PortableDeviceCapabilities();
-            deviceCapabilities.ExtractDeviceCapabilities(this.portableDeviceClass);
-            deviceCapabilities.ExtractCommands(this.portableDeviceClass);
-            deviceCapabilities.ExtractEvents(this.portableDeviceClass);
+            deviceCapabilities.ExtractDeviceCapabilities(portableDeviceClass);
+            deviceCapabilities.ExtractCommands(portableDeviceClass);
+            deviceCapabilities.ExtractEvents(portableDeviceClass);
         }
 
         private void StartEnumerate()
         {
-            lock (this.dispatcher)
+            lock (dispatcher)
             {
+                IPortableDeviceContent pContent;
+                portableDeviceClass.Content(out pContent);
 
-                PortableDeviceApiLib.IPortableDeviceContent pContent;
-                this.portableDeviceClass.Content(out pContent);
+                content = new PortableDeviceFunctionalObject("DEVICE");
+                Enumerate(ref pContent, "DEVICE", content);
 
-                this.content = new PortableDeviceFunctionalObject("DEVICE");
-                Enumerate(ref pContent, "DEVICE", this.content);
-
-                this.RaisePropertyChanged("Content");
+                RaisePropertyChanged("Content");
             }
         }
 
-        private void Enumerate(ref PortableDeviceApiLib.IPortableDeviceContent pContent, string parentID, PortableDeviceContainerObject node)
+        private void Enumerate(ref IPortableDeviceContent pContent, string parentID, PortableDeviceContainerObject node)
         {
-            PortableDeviceApiLib.IPortableDeviceProperties properties;
+            IPortableDeviceProperties properties;
             pContent.Properties(out properties);
 
-            PortableDeviceApiLib.IEnumPortableDeviceObjectIDs pEnum;
+            IEnumPortableDeviceObjectIDs pEnum;
             pContent.EnumObjects(0, parentID, null, out pEnum);
 
             uint cFetched = 0;
@@ -399,51 +358,60 @@ namespace PortableDeviceLib
 
                 if (cFetched > 0)
                 {
-                    current = this.ExtractInformation(properties, objectID);
+                    current = ExtractInformation(properties, objectID);
                     node.AddChild(current);
                     if (current is PortableDeviceContainerObject)
-                        Enumerate(ref pContent, objectID, (PortableDeviceContainerObject)current);
+                        Enumerate(ref pContent, objectID, (PortableDeviceContainerObject) current);
                 }
-
             } while (cFetched > 0);
         }
 
-        private PortableDeviceObject ExtractInformation(PortableDeviceApiLib.IPortableDeviceProperties properties, string objectId)
+        private PortableDeviceObject ExtractInformation(IPortableDeviceProperties properties, string objectId)
         {
-            PortableDeviceApiLib.IPortableDeviceKeyCollection keys;
+            IPortableDeviceKeyCollection keys;
             properties.GetSupportedProperties(objectId, out keys);
 
-            PortableDeviceApiLib.IPortableDeviceValues values;
+            IPortableDeviceValues values;
             properties.GetValues(objectId, keys, out values);
 
             var guid = new Guid();
             values.GetGuidValue(ref PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, out guid);
 
-            return Factories.PortableDeviceObjectFactory.Instance.CreateInstance(guid, values);
+            return PortableDeviceObjectFactory.Instance.CreateInstance(guid, values);
         }
 
         private void Dispose(bool disposing)
         {
             if (disposing)
             {
-                if (!string.IsNullOrEmpty(this.adviseCookie))
-                    this.portableDeviceClass.Unadvise(this.adviseCookie);
+                if (!string.IsNullOrEmpty(adviseCookie))
+                    portableDeviceClass.Unadvise(adviseCookie);
 
-                if (this.IsConnected)
-                    this.portableDeviceClass.Close();
+                if (IsConnected)
+                    portableDeviceClass.Close();
             }
 
-            this.portableDeviceClass = null;
+            portableDeviceClass = null;
         }
 
         /// <summary>
-        /// Finalizer
+        ///     Finalizer
         /// </summary>
         ~PortableDevice()
         {
-            this.Dispose(false);
+            Dispose(false);
         }
 
         #endregion
+
+        /// <summary>
+        ///     <see cref="System.ComponentModel.INotifyPropertyChanged" />
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        ///     Event sended when portable device raise an event
+        /// </summary>
+        public event EventHandler<PortableDeviceEventArgs> DeviceEvent;
     }
 }

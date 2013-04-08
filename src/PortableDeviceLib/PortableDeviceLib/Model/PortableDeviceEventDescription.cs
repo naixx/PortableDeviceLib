@@ -1,21 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace PortableDeviceLib.Model
 {
     /// <summary>
-    /// Represent a description for an event
+    ///     Represent a description for an event
     /// </summary>
     public class PortableDeviceEventDescription
     {
-        private List<PortableDeviceEventOption> options;
+        private readonly List<PortableDeviceEventOption> options;
 
         #region Constructors
 
         /// <summary>
-        /// Initialize a new instance of the <see cref="PortableDeviceEventDescription"/> class
+        ///     Initialize a new instance of the <see cref="PortableDeviceEventDescription" /> class
         /// </summary>
         /// <param name="eventGuid">The event guid key</param>
         /// <param name="eventName">The event name</param>
@@ -26,9 +24,9 @@ namespace PortableDeviceLib.Model
             if (string.IsNullOrEmpty(eventName))
                 throw new ArgumentNullException("eventName");
 
-            this.options = new List<PortableDeviceEventOption>();
-            this.Name = eventName;
-            this.Guid = eventGuid;
+            options = new List<PortableDeviceEventOption>();
+            Name = eventName;
+            Guid = eventGuid;
         }
 
         #endregion
@@ -36,57 +34,44 @@ namespace PortableDeviceLib.Model
         #region Properties
 
         /// <summary>
-        /// Gets or sets the guid of the event
+        ///     Gets or sets the guid of the event
         /// </summary>
-        public Guid Guid
-        {
-            get;
-            set;
-        }
+        public Guid Guid { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the event
+        ///     Gets or sets the name of the event
         /// </summary>
-        public string Name
-        {
-            get;
-            set;
-        }
+        public string Name { get; set; }
 
         /// <summary>
-        /// Gets the options of the event
+        ///     Gets the options of the event
         /// </summary>
         public IEnumerable<PortableDeviceEventOption> Options
         {
-            get
-            {
-                return this.options;
-            }
+            get { return options; }
         }
 
         #endregion
 
         #region Public functions
 
-
-
         #endregion
 
         #region Internal functions
 
         /// <summary>
-        /// Add an option in the event description
+        ///     Add an option in the event description
         /// </summary>
         /// <param name="option"></param>
         internal void AddOptions(PortableDeviceEventOption option)
         {
             if (option == null)
                 throw new ArgumentNullException("option");
-            
-            if (this.options.Contains(option))
+
+            if (options.Contains(option))
                 return;
 
-            this.options.Add(option);
+            options.Add(option);
         }
 
         #endregion

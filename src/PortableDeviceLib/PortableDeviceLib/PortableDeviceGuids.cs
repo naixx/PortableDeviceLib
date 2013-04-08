@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDeviceGuids.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,16 +18,15 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PortableDeviceLib
 {
-
     /// <summary>
-    /// Consts from wpd.h
+    ///     Consts from wpd.h
     /// </summary>
     public static class PortableDeviceGuids
     {
@@ -135,6 +135,5 @@ namespace PortableDeviceLib
         public static Guid WPD_OBJECT_FORMAT_MICROSOFT_WFC = new Guid(0xB1040000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7);
         public static Guid WPD_OBJECT_FORMAT_3GP = new Guid(0xB9840000, 0xAE6C, 0x4804, 0x98, 0xBA, 0xC5, 0x7B, 0x46, 0x96, 0x5F, 0xE7);
         public static Guid WPD_OBJECT_FORMAT_ALL = new Guid(0xC1F62EB2, 0x4BB3, 0x479C, 0x9C, 0xFA, 0x05, 0xB5, 0xF3, 0xA5, 0x7B, 0x22);
-
     }
 }

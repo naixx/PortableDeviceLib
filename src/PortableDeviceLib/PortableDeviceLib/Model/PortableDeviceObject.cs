@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDeviceObject.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,22 +18,20 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace PortableDeviceLib.Model
 {
     /// <summary>
-    /// Represent an objet in a WPD
+    ///     Represent an objet in a WPD
     /// </summary>
     public class PortableDeviceObject
     {
-
         /// <summary>
-        /// Initialize a new instance of the <see cref="PortableDeviceObject"/> class
+        ///     Initialize a new instance of the <see cref="PortableDeviceObject" /> class
         /// </summary>
         /// <param name="id"></param>
         public PortableDeviceObject(string id)
@@ -40,56 +39,38 @@ namespace PortableDeviceLib.Model
             if (string.IsNullOrEmpty(id))
                 throw new ArgumentNullException("id");
 
-            this.ID = id;
+            ID = id;
         }
 
         /// <summary>
-        /// Gets the ID of the object
+        ///     Gets the ID of the object
         /// </summary>
-        public string ID
-        {
-            get;
-            protected set;
-        }
+        public string ID { get; protected set; }
 
         /// <summary>
-        /// Gets the name of the object
+        ///     Gets the name of the object
         /// </summary>
-        public string Name
-        {
-            get;
-            internal set;
-        }
+        public string Name { get; internal set; }
 
         /// <summary>
-        /// Gets the content type
+        ///     Gets the content type
         /// </summary>
-        public string ContentType
-        {
-            get;
-            internal set;
-        }
+        public string ContentType { get; internal set; }
 
         /// <summary>
-        /// Gets the format
+        ///     Gets the format
         /// </summary>
-        public string Format
-        {
-            get;
-            internal set;
-        }
+        public string Format { get; internal set; }
 
         /// <summary>
-        /// 
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
             if (string.IsNullOrEmpty(Name))
-                return this.ID;
+                return ID;
             else
-                return this.Name;
+                return Name;
         }
-
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region License
+
 /*
 PortableDeviceHelpers.cs
 Copyright (C) 2009 Vincent Lainé
@@ -17,18 +18,20 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
 #endregion
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Runtime.InteropServices;
-using System.Reflection;
-using PortableDeviceApiLib;
+using PortableDeviceTypesLib;
+using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
+using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
+using tag_inner_PROPVARIANT = PortableDeviceApiLib.tag_inner_PROPVARIANT;
 
 namespace PortableDeviceLib
 {
-
     // Nested Types
     [StructLayout(LayoutKind.Explicit, Size = 16)]
     public struct PropVariant
@@ -56,8 +59,8 @@ namespace PortableDeviceLib
         public static int VT_UI8;
         public static int VT_UINT;
 
-        private static Dictionary<string, PortableDeviceApiLib._tagpropertykey> _values;
-        private static Dictionary<Guid, string> _portableDeviceGuidWithName;
+        private static readonly Dictionary<string, _tagpropertykey> _values;
+        private static readonly Dictionary<Guid, string> _portableDeviceGuidWithName;
 
         static PortableDeviceHelpers()
         {
@@ -67,7 +70,7 @@ namespace PortableDeviceLib
             VT_UINT = 0x17;
             VT_UI8 = 0x15;
 
-            _values = new Dictionary<string, PortableDeviceApiLib._tagpropertykey>
+            _values = new Dictionary<string, _tagpropertykey>
                 {
                     {MTPConstants.OBJECT_PLAY_COUNT, PortableDevicePKeys.WPD_MEDIA_USE_COUNT},
                     {MTPConstants.OBJECT_GENRE, PortableDevicePKeys.WPD_MEDIA_GENRE},
@@ -113,15 +116,12 @@ namespace PortableDeviceLib
 
         public static Dictionary<Guid, string> PortableDeviceGuidWithName
         {
-            get
-            {
-                return _portableDeviceGuidWithName;
-            }
+            get { return _portableDeviceGuidWithName; }
         }
 
-        public static string GetNameFromGuid(PortableDeviceApiLib._tagpropertykey key, PortableDeviceApiLib.tag_inner_PROPVARIANT values)
+        public static string GetNameFromGuid(_tagpropertykey key, tag_inner_PROPVARIANT values)
         {
-            PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
+            var pValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
             string contentTypeName;
 
             pValues.SetValue(ref key, ref values);
@@ -132,17 +132,17 @@ namespace PortableDeviceLib
 
         public static string GetKeyNameFromGuid(Guid guid)
         {
-            if (PortableDeviceHelpers.PortableDeviceGuidWithName.ContainsKey(guid))
-                return PortableDeviceHelpers.PortableDeviceGuidWithName[guid];
+            if (PortableDeviceGuidWithName.ContainsKey(guid))
+                return PortableDeviceGuidWithName[guid];
             else
                 return guid.ToString();
         }
 
-        internal static string GetKeyNameFromPropkey(PortableDeviceApiLib._tagpropertykey propertyKey)
+        internal static string GetKeyNameFromPropkey(_tagpropertykey propertyKey)
         {
-            foreach (KeyValuePair<string, _tagpropertykey> de in _values.Where(de => (propertyKey.pid == de.Value.pid) && (propertyKey.fmtid == de.Value.fmtid)))
+            foreach (var de in _values.Where(de => (propertyKey.pid == de.Value.pid) && (propertyKey.fmtid == de.Value.fmtid)))
             {
-                return (string)de.Key;
+                return de.Key;
             }
 
             return (propertyKey.pid.ToString() + " " + propertyKey.fmtid.ToString());
