@@ -118,7 +118,7 @@ namespace PortableDeviceLib
                 pValues.SetValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_FORMATS, ref values);
                 pValues.GetStringValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_FORMATS, out formatName);
                 currentFormat = new Guid(formatName);
-                this.formats.Add(currentFormat, PortableDeviceHelpers.GetKeyNameFromGuid(currentFormat));
+                this.formats[currentFormat] = PortableDeviceHelpers.GetKeyNameFromGuid(currentFormat);
             }
 
         }
