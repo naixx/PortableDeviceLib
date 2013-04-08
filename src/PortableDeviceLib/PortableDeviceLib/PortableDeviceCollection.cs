@@ -20,8 +20,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endregion
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using PortableDeviceApiLib;
 
 namespace PortableDeviceLib
@@ -134,7 +132,7 @@ namespace PortableDeviceLib
             if (!portableDevices.ContainsKey(id))
             {
                 PortableDevice portableDevice = new PortableDevice(id);
-                if( AutoConnectToPortableDevice )
+                if (AutoConnectToPortableDevice)
                     portableDevice.ConnectToDevice(appName, majorVersion, minorVersion);
                 portableDevices.Add(id, portableDevice);
             }
@@ -162,10 +160,12 @@ namespace PortableDeviceLib
 
         private void RefreshDevices()
         {
+            this.portableDevices.Clear();
             this.deviceManager.RefreshDeviceList();
-            string[] devicesIds = new string[1];
             uint _countDevices = 1;
-            this.deviceManager.GetDevices(ref devicesIds[0], ref _countDevices);
+            this.deviceManager.GetDevices(null, ref _countDevices);
+            string[] devicesIds = new string[_countDevices];
+            this.deviceManager.GetDevices(devicesIds, ref _countDevices);
             this.countDevices = _countDevices;
         }
 
@@ -176,7 +176,7 @@ namespace PortableDeviceLib
                 return null;
 
             string[] deviceIds = new string[this.countDevices];
-            this.deviceManager.GetDevices(ref deviceIds[0], ref this.countDevices);            
+            this.deviceManager.GetDevices(deviceIds, ref this.countDevices);
 
             return deviceIds;
         }
