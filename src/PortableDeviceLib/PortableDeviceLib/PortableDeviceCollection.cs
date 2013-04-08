@@ -158,7 +158,7 @@ namespace PortableDeviceLib
             countDevices = _countDevices;
         }
 
-        private string[] InternalGetDeviceIds()
+        private IEnumerable<string> InternalGetDeviceIds()
         {
             RefreshDevices();
             if (countDevices <= 0)

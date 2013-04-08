@@ -3,9 +3,6 @@ using PortableDeviceLib.Model;
 
 namespace PortableDeviceLib
 {
-    /// <summary>
-    ///     Event arguments for the <see cref="PortableDevice.DeviceEventSended" /> event
-    /// </summary>
     public class PortableDeviceEventArgs : EventArgs
     {
         #region Constructors

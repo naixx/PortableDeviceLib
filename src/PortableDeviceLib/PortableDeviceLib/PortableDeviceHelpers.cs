@@ -145,7 +145,7 @@ namespace PortableDeviceLib
                 return de.Key;
             }
 
-            return (propertyKey.pid.ToString() + " " + propertyKey.fmtid.ToString());
+            return (propertyKey.pid + " " + propertyKey.fmtid);
         }
 
         private static Dictionary<Guid, string> MakeGlobalDictionary()

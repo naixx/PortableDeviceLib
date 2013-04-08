@@ -78,7 +78,7 @@ namespace PortableDeviceLib.Factories
 
         #region Private functions
 
-        private string GetObjectId(IPortableDeviceValues values)
+        private static string GetObjectId(IPortableDeviceValues values)
         {
             string value;
             values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_ID, out value);
@@ -90,7 +90,7 @@ namespace PortableDeviceLib.Factories
             var obj = new PortableDeviceFunctionalObject(GetObjectId(values));
             InitializeInstance(obj, values);
 
-            var category = new Guid();
+            Guid category;
             values.GetGuidValue(ref PortableDevicePKeys.WPD_FUNCTIONAL_OBJECT_CATEGORY, out category);
             obj.Category = category;
 
@@ -111,12 +111,12 @@ namespace PortableDeviceLib.Factories
             return obj;
         }
 
-        private void InitializeInstance(PortableDeviceObject obj, IPortableDeviceValues values)
+        private static void InitializeInstance(PortableDeviceObject obj, IPortableDeviceValues values)
         {
             string name;
             values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_NAME, out name);
 
-            var guid = new Guid();
+            Guid guid;
             values.GetGuidValue(ref PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, out guid);
             string contentType = PortableDeviceHelpers.GetKeyNameFromGuid(guid);
 
