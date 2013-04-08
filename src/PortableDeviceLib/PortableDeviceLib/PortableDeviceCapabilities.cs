@@ -116,12 +116,12 @@ namespace PortableDeviceLib
                 functionalCategories.GetCount(ref countCategories);
                 tag_inner_PROPVARIANT values = new tag_inner_PROPVARIANT();
 
-                PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
                 string categoryName;
                 Guid currentGuid;
                 for (uint i = 0; i < countCategories; i++)
                 {
                     functionalCategories.GetAt(i, ref values);
+                    PortableDeviceApiLib.IPortableDeviceValues pValues = (PortableDeviceApiLib.IPortableDeviceValues)new PortableDeviceTypesLib.PortableDeviceValuesClass();
 
                     pValues.SetValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_FUNCTIONAL_CATEGORIES, ref values);
                     pValues.GetStringValue(ref PortableDevicePKeys.WPD_COMMAND_CAPABILITIES_GET_SUPPORTED_FUNCTIONAL_CATEGORIES, out categoryName);
