@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8E4207C5-3881-4DDD-B91D-9292F910E5C0}"
+	ProjectSection(SolutionItems) = preProject
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		PortableDeviceLib.vsmdi = PortableDeviceLib.vsmdi
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortableDeviceLib", "PortableDeviceLib\PortableDeviceLib.csproj", "{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortableDeviceExplorer", "PortableDeviceExplorer\PortableDeviceExplorer.csproj", "{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PortableDeviceLib.Tests", "PortableDeviceLib\PortableDeviceLib.Tests\PortableDeviceLib.Tests.csproj", "{013C2C4E-A165-4F34-B782-1A9D0932981E}"
+EndProject
+Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = PortableDeviceLib.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Debug|x86.ActiveCfg = Debug|x86
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Debug|x86.Build.0 = Debug|x86
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Release|x86.ActiveCfg = Release|Any CPU
+		{E9F048C1-C6A0-4CCD-BE57-4E76A7F8B32D}.Release|x86.Build.0 = Release|Any CPU
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Debug|x86.ActiveCfg = Debug|x86
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Debug|x86.Build.0 = Debug|x86
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Release|x86.ActiveCfg = Release|Any CPU
+		{AF69DCCE-1A34-4649-ABAD-DC19D3BF6B67}.Release|x86.Build.0 = Release|Any CPU
+		{013C2C4E-A165-4F34-B782-1A9D0932981E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{013C2C4E-A165-4F34-B782-1A9D0932981E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{013C2C4E-A165-4F34-B782-1A9D0932981E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{013C2C4E-A165-4F34-B782-1A9D0932981E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{013C2C4E-A165-4F34-B782-1A9D0932981E}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
