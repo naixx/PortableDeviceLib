@@ -140,17 +140,15 @@ namespace PortableDeviceLib
 
         internal static string GetKeyNameFromPropkey(_tagpropertykey propertyKey)
         {
-            foreach (var de in _values.Where(de => (propertyKey.pid == de.Value.pid) && (propertyKey.fmtid == de.Value.fmtid)))
-            {
-                return de.Key;
-            }
-
-            return (propertyKey.pid.ToString() + " " + propertyKey.fmtid.ToString());
+            var query = (from value in _values
+                        where (propertyKey.pid == value.Value.pid) && (propertyKey.fmtid == value.Value.fmtid)
+                        select value.Key);
+            return query.First() ?? (propertyKey.pid + " " + propertyKey.fmtid);
         }
 
         private static Dictionary<Guid, string> MakeGlobalDictionary()
         {
-            return typeof (PortableDeviceGuids).GetFields().ToDictionary(fi => (Guid) fi.GetValue(null), fi => fi.Name);
+           return typeof (PortableDeviceGuids).GetFields().ToDictionary(fi => (Guid) fi.GetValue(null), fi => fi.Name);
         }
     }
 }

@@ -42,10 +42,7 @@ namespace PortableDeviceLib
         private readonly object dispatcher; //Use an object for thread safety
 
         private string adviseCookie;
-        private PortableDeviceFunctionalObject content;
-        private PortableDeviceCapabilities deviceCapabilities;
         private PortableDeviceEventCallback eventCallback;
-        private PortableDeviceClass portableDeviceClass;
         private Dictionary<string, object> values;
 
         #region Constructors
@@ -59,7 +56,7 @@ namespace PortableDeviceLib
             if (string.IsNullOrEmpty(deviceId))
                 throw new ArgumentNullException("deviceId");
             dispatcher = new object();
-            portableDeviceClass = new PortableDeviceClass();
+            PortableDeviceClass = new PortableDeviceClass();
             values = new Dictionary<string, object>();
 
             DeviceId = deviceId;
@@ -130,19 +127,15 @@ namespace PortableDeviceLib
         /// <summary>
         ///     Gets the capabilities of the device
         /// </summary>
-        public PortableDeviceCapabilities DeviceCapabilities
-        {
-            get { return deviceCapabilities; }
-        }
+        public PortableDeviceCapabilities DeviceCapabilities { get; private set; }
 
         /// <summary>
         ///     Gets all content from device
         ///     If return is null be sure you call <see cref="PortableDevice.RefreshContent()" /> before
         /// </summary>
-        public PortableDeviceFunctionalObject Content
-        {
-            get { return content; }
-        }
+        public PortableDeviceFunctionalObject Content { get; private set; }
+
+        internal PortableDeviceClass PortableDeviceClass { get; private set; }
 
         #endregion
 
@@ -182,14 +175,14 @@ namespace PortableDeviceLib
             clientValues.SetFloatValue(ref prop, minorVersionNumber);
 
             //Open connection
-            portableDeviceClass.Open(DeviceId, clientValues);
+            PortableDeviceClass.Open(DeviceId, clientValues);
 
             //Extract device capabilities
             ExtractDeviceCapabilities();
 
             eventCallback = new PortableDeviceEventCallback(this);
             // According to documentation pParameters should be null (see http://msdn.microsoft.com/en-us/library/dd375684%28v=VS.85%29.aspx )
-            portableDeviceClass.Advise(0, eventCallback, null, out adviseCookie);
+            PortableDeviceClass.Advise(0, eventCallback, null, out adviseCookie);
 
             IsConnected = true;
         }
@@ -202,7 +195,7 @@ namespace PortableDeviceLib
             if (!IsConnected)
                 return;
 
-            portableDeviceClass.Unadvise(adviseCookie);
+            PortableDeviceClass.Unadvise(adviseCookie);
             eventCallback = null;
             IsConnected = false;
         }
@@ -228,7 +221,7 @@ namespace PortableDeviceLib
             commandValues.SetUnsignedIntegerValue(ref PortableDevicePKeys.WPD_PROPERTY_COMMON_COMMAND_ID, command.pid);
 
             // According to documentation, first parameter should be 0 (see http://msdn.microsoft.com/en-us/library/dd375691%28v=VS.85%29.aspx)
-            portableDeviceClass.SendCommand(0, commandValues, out results);
+            PortableDeviceClass.SendCommand(0, commandValues, out results);
         }
 
         /// <summary>
@@ -236,10 +229,7 @@ namespace PortableDeviceLib
         /// <returns></returns>
         public override string ToString()
         {
-            if (IsConnected)
-                return FriendlyName;
-            else
-                return DeviceId;
+            return IsConnected ? FriendlyName : DeviceId;
         }
 
         #endregion
@@ -284,12 +274,12 @@ namespace PortableDeviceLib
             IPortableDeviceProperties properties;
             IPortableDeviceValues propertyValues;
 
-            portableDeviceClass.Content(out content);
+            PortableDeviceClass.Content(out content);
             content.Properties(out properties);
 
             properties.GetValues("DEVICE", null, out propertyValues);
 
-            string val = string.Empty;
+            string val;
             propertyValues.GetStringValue(ref propertyKey, out val);
 
             return val;
@@ -304,11 +294,11 @@ namespace PortableDeviceLib
             IPortableDeviceProperties properties;
             IPortableDeviceValues propertyValues;
 
-            portableDeviceClass.Content(out content);
+            PortableDeviceClass.Content(out content);
             content.Properties(out properties);
             properties.GetValues("DEVICE", null, out propertyValues);
 
-            float val = -1;
+            float val;
             propertyValues.GetFloatValue(ref propertyKey, out val);
             return Convert.ToInt32(val);
         }
@@ -321,10 +311,10 @@ namespace PortableDeviceLib
 
         private void ExtractDeviceCapabilities()
         {
-            deviceCapabilities = new PortableDeviceCapabilities();
-            deviceCapabilities.ExtractDeviceCapabilities(portableDeviceClass);
-            deviceCapabilities.ExtractCommands(portableDeviceClass);
-            deviceCapabilities.ExtractEvents(portableDeviceClass);
+            DeviceCapabilities = new PortableDeviceCapabilities();
+            DeviceCapabilities.ExtractDeviceCapabilities(PortableDeviceClass);
+            DeviceCapabilities.ExtractCommands(PortableDeviceClass);
+            DeviceCapabilities.ExtractEvents(PortableDeviceClass);
         }
 
         private void StartEnumerate()
@@ -332,10 +322,10 @@ namespace PortableDeviceLib
             lock (dispatcher)
             {
                 IPortableDeviceContent pContent;
-                portableDeviceClass.Content(out pContent);
+                PortableDeviceClass.Content(out pContent);
 
-                content = new PortableDeviceFunctionalObject("DEVICE");
-                Enumerate(ref pContent, "DEVICE", content);
+                Content = new PortableDeviceFunctionalObject("DEVICE");
+                Enumerate(ref pContent, "DEVICE", Content);
 
                 RaisePropertyChanged("Content");
             }
@@ -350,23 +340,21 @@ namespace PortableDeviceLib
             pContent.EnumObjects(0, parentID, null, out pEnum);
 
             uint cFetched = 0;
-            PortableDeviceObject current;
             do
             {
                 string objectID;
                 pEnum.Next(1, out objectID, ref cFetched);
 
-                if (cFetched > 0)
-                {
-                    current = ExtractInformation(properties, objectID);
-                    node.AddChild(current);
-                    if (current is PortableDeviceContainerObject)
-                        Enumerate(ref pContent, objectID, (PortableDeviceContainerObject) current);
-                }
+                if (cFetched <= 0) continue;
+
+                PortableDeviceObject current = ExtractInformation(properties, objectID);
+                node.AddChild(current);
+                if (current is PortableDeviceContainerObject)
+                    Enumerate(ref pContent, objectID, (PortableDeviceContainerObject) current);
             } while (cFetched > 0);
         }
 
-        private PortableDeviceObject ExtractInformation(IPortableDeviceProperties properties, string objectId)
+        private static PortableDeviceObject ExtractInformation(IPortableDeviceProperties properties, string objectId)
         {
             IPortableDeviceKeyCollection keys;
             properties.GetSupportedProperties(objectId, out keys);
@@ -374,7 +362,7 @@ namespace PortableDeviceLib
             IPortableDeviceValues values;
             properties.GetValues(objectId, keys, out values);
 
-            var guid = new Guid();
+            Guid guid;
             values.GetGuidValue(ref PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, out guid);
 
             return PortableDeviceObjectFactory.Instance.CreateInstance(guid, values);
@@ -385,13 +373,13 @@ namespace PortableDeviceLib
             if (disposing)
             {
                 if (!string.IsNullOrEmpty(adviseCookie))
-                    portableDeviceClass.Unadvise(adviseCookie);
+                    PortableDeviceClass.Unadvise(adviseCookie);
 
                 if (IsConnected)
-                    portableDeviceClass.Close();
+                    PortableDeviceClass.Close();
             }
 
-            portableDeviceClass = null;
+            PortableDeviceClass = null;
         }
 
         /// <summary>

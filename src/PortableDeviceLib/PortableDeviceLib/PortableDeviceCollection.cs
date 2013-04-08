@@ -23,6 +23,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using PortableDeviceApiLib;
 
 namespace PortableDeviceLib
@@ -91,13 +92,8 @@ namespace PortableDeviceLib
         /// </summary>
         public IEnumerable<PortableDevice> Devices
         {
-            get
-            {
-                if (DeviceIds == null)
-                    yield break;
-
-                foreach (string id in DeviceIds)
-                    yield return GetPortableDeviceById(id);
+            get {
+                return DeviceIds.Select(GetPortableDeviceById);
             }
         }
 
@@ -158,16 +154,16 @@ namespace PortableDeviceLib
             countDevices = _countDevices;
         }
 
-        private string[] InternalGetDeviceIds()
+        private IEnumerable<string> InternalGetDeviceIds()
         {
             RefreshDevices();
             if (countDevices <= 0)
-                return null;
+                return new List<string>();
 
             var deviceIds = new string[countDevices];
             deviceManager.GetDevices(deviceIds, ref countDevices);
 
-            return deviceIds;
+            return new List<string>(deviceIds);
         }
     }
 }

@@ -22,6 +22,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -147,7 +148,6 @@ namespace PortableDeviceLib
 
             var key = new _tagpropertykey();
             _tagpropertykey tt;
-            string currentName;
 
             uint count = 1;
             values.GetCount(ref count);
@@ -155,7 +155,7 @@ namespace PortableDeviceLib
             {
                 values.GetAt(i, ref key);
 
-                currentName = string.Empty;
+                string currentName = null;
                 foreach (FieldInfo fi in typeof (PortableDevicePKeys).GetFields())
                 {
                     tt = (_tagpropertykey) fi.GetValue(null);
@@ -163,10 +163,7 @@ namespace PortableDeviceLib
                         currentName = fi.Name;
                 }
 
-                if (!string.IsNullOrEmpty(currentName))
-                    commands.Add(currentName, key);
-                else
-                    commands.Add(key.pid + " " + key.fmtid, key);
+                commands.Add(currentName ?? key.pid + " " + key.fmtid, key);
             }
         }
 
