@@ -36,12 +36,7 @@ namespace PortableDeviceLib.Factories
         /// </summary>
         public static PortableDeviceObjectFactory Instance
         {
-            get
-            {
-                if (instance == null)
-                    instance = new PortableDeviceObjectFactory();
-                return instance;
-            }
+            get { return instance ?? (instance = new PortableDeviceObjectFactory()); }
         }
 
         #endregion

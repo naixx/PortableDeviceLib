@@ -27,12 +27,7 @@ namespace PortableDeviceLib.Factories
         /// </summary>
         public static PortableDeviceEventTypeFactory Instance
         {
-            get
-            {
-                if (instance == null)
-                    instance = new PortableDeviceEventTypeFactory();
-                return instance;
-            }
+            get { return instance ?? (instance = new PortableDeviceEventTypeFactory()); }
         }
 
         #endregion

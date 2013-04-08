@@ -152,10 +152,7 @@ namespace PortableDeviceLib
             if (string.IsNullOrEmpty(appName))
                 throw new ArgumentNullException("appName");
 
-            if (_instance == null)
-                _instance = new PortableDeviceCollection(appName, majorVersion, minorVersion);
-
-            return _instance;
+            return _instance ?? (_instance = new PortableDeviceCollection(appName, majorVersion, minorVersion));
         }
 
         private void RefreshDevices()

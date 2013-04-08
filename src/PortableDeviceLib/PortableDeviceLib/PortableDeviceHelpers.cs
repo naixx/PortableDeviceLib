@@ -24,6 +24,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using PortableDeviceApiLib;
 
 namespace PortableDeviceLib
 {
@@ -44,7 +45,7 @@ namespace PortableDeviceLib
         public double dateValue;
         [FieldOffset(8)]
         public short boolValue;
-    } 
+    }
 
 
     internal static class PortableDeviceHelpers
@@ -66,44 +67,46 @@ namespace PortableDeviceLib
             VT_UINT = 0x17;
             VT_UI8 = 0x15;
 
-            _values = new Dictionary<string, PortableDeviceApiLib._tagpropertykey>();
-            _values.Add(MTPConstants.OBJECT_PLAY_COUNT, PortableDevicePKeys.WPD_MEDIA_USE_COUNT);
-            _values.Add(MTPConstants.OBJECT_GENRE, PortableDevicePKeys.WPD_MEDIA_GENRE);
-            _values.Add(MTPConstants.OBJECT_STAR_RATING, PortableDevicePKeys.WPD_MEDIA_STAR_RATING);
-            _values.Add(MTPConstants.OBJECT_ARTIST, PortableDevicePKeys.WPD_MEDIA_ARTIST);
-            _values.Add(MTPConstants.OBJECT_ALBUM_ARTIST, PortableDevicePKeys.WPD_MEDIA_ALBUM_ARTIST);
-            _values.Add(MTPConstants.OBJECT_SUBSCRIPTION_CONTENT_ID, PortableDevicePKeys.WPD_MEDIA_SUBSCRIPTION_CONTENT_ID);
-            _values.Add(MTPConstants.OBJECT_EFFECTIVE_RATING, PortableDevicePKeys.WPD_MEDIA_USER_EFFECTIVE_RATING);
-            _values.Add(MTPConstants.OBJECT_ALBUM, PortableDevicePKeys.WPD_MUSIC_ALBUM);
-            _values.Add(MTPConstants.OBJECT_TRACK, PortableDevicePKeys.WPD_MUSIC_TRACK);
-            _values.Add(MTPConstants.OBJECT_ID, PortableDevicePKeys.WPD_OBJECT_ID);
-            _values.Add(MTPConstants.OBJECT_SIZE, PortableDevicePKeys.WPD_OBJECT_SIZE);
-            _values.Add(MTPConstants.OBJECT_DURATION, PortableDevicePKeys.WPD_MEDIA_DURATION);
-            _values.Add(MTPConstants.OBJECT_TITLE, PortableDevicePKeys.WPD_MEDIA_TITLE);
-            _values.Add(MTPConstants.OBJECT_DATE_AUTHORED, PortableDevicePKeys.WPD_OBJECT_DATE_AUTHORED);
-            _values.Add(MTPConstants.OBJECT_DATE_CREATED, PortableDevicePKeys.WPD_OBJECT_DATE_CREATED);
-            _values.Add(MTPConstants.OBJECT_MODIFIED, PortableDevicePKeys.WPD_OBJECT_DATE_MODIFIED);
-            _values.Add(MTPConstants.OBJECT_FORMAT, PortableDevicePKeys.WPD_OBJECT_FORMAT);
-            _values.Add(MTPConstants.OBJECT_DRM_PROTECTED, PortableDevicePKeys.WPD_OBJECT_IS_DRM_PROTECTED);
-            _values.Add(MTPConstants.OBJECT_FILENAME, PortableDevicePKeys.WPD_OBJECT_ORIGINAL_FILE_NAME);
-            _values.Add(MTPConstants.OBJECT_NAME, PortableDevicePKeys.WPD_OBJECT_NAME);
-            _values.Add(MTPConstants.OBJECT_PERSISTENT_ID, PortableDevicePKeys.WPD_OBJECT_PERSISTENT_UNIQUE_ID);
-            _values.Add(MTPConstants.OBJECT_TOTAL_BITRATE, PortableDevicePKeys.WPD_MEDIA_TOTAL_BITRATE);
-            _values.Add(MTPConstants.OBJECT_SKIP_COUNT, PortableDevicePKeys.WPD_MEDIA_SKIP_COUNT);
-            _values.Add(MTPConstants.OBJECT_SAMPLE_RATE, PortableDevicePKeys.WPD_MEDIA_SAMPLE_RATE);
-            _values.Add(MTPConstants.OBJECT_RELEASE_DATE, PortableDevicePKeys.WPD_MEDIA_RELEASE_DATE);
-            _values.Add(MTPConstants.OBJECT_LAST_BUILD_DATE, PortableDevicePKeys.WPD_MEDIA_LAST_BUILD_DATE);
-            _values.Add(MTPConstants.OBJECT_LAST_ACCESSED_TIME, PortableDevicePKeys.WPD_MEDIA_LAST_ACCESSED_TIME);
-            _values.Add(MTPConstants.OBJECT_BITRATE_TYPE, PortableDevicePKeys.WPD_MEDIA_BITRATE_TYPE);
-            _values.Add(MTPConstants.OBJECT_ALBUM_ART, PortableDevicePKeys.WPD_RESOURCE_ALBUM_ART);
-            _values.Add(MTPConstants.DEVICE_FIRMWARE_VERSION, PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION);
-            _values.Add(MTPConstants.DEVICE_FRIENDLY_NAME, PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME);
-            _values.Add(MTPConstants.DEVICE_MANUFACTURER, PortableDevicePKeys.WPD_DEVICE_MANUFACTURER);
-            _values.Add(MTPConstants.DEVICE_MODEL, PortableDevicePKeys.WPD_DEVICE_MODEL);
-            _values.Add(MTPConstants.DEVICE_BATTERY_LEVEL, PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL);
-            _values.Add(MTPConstants.DEVICE_POWER_SOURCE, PortableDevicePKeys.WPD_DEVICE_POWER_SOURCE);
-            _values.Add(MTPConstants.DEVICE_SERIAL_NUMBER, PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER);
-            _values.Add(MTPConstants.OBJECT_CONTENT_TYPE, PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE);
+            _values = new Dictionary<string, PortableDeviceApiLib._tagpropertykey>
+                {
+                    {MTPConstants.OBJECT_PLAY_COUNT, PortableDevicePKeys.WPD_MEDIA_USE_COUNT},
+                    {MTPConstants.OBJECT_GENRE, PortableDevicePKeys.WPD_MEDIA_GENRE},
+                    {MTPConstants.OBJECT_STAR_RATING, PortableDevicePKeys.WPD_MEDIA_STAR_RATING},
+                    {MTPConstants.OBJECT_ARTIST, PortableDevicePKeys.WPD_MEDIA_ARTIST},
+                    {MTPConstants.OBJECT_ALBUM_ARTIST, PortableDevicePKeys.WPD_MEDIA_ALBUM_ARTIST},
+                    {MTPConstants.OBJECT_SUBSCRIPTION_CONTENT_ID, PortableDevicePKeys.WPD_MEDIA_SUBSCRIPTION_CONTENT_ID},
+                    {MTPConstants.OBJECT_EFFECTIVE_RATING, PortableDevicePKeys.WPD_MEDIA_USER_EFFECTIVE_RATING},
+                    {MTPConstants.OBJECT_ALBUM, PortableDevicePKeys.WPD_MUSIC_ALBUM},
+                    {MTPConstants.OBJECT_TRACK, PortableDevicePKeys.WPD_MUSIC_TRACK},
+                    {MTPConstants.OBJECT_ID, PortableDevicePKeys.WPD_OBJECT_ID},
+                    {MTPConstants.OBJECT_SIZE, PortableDevicePKeys.WPD_OBJECT_SIZE},
+                    {MTPConstants.OBJECT_DURATION, PortableDevicePKeys.WPD_MEDIA_DURATION},
+                    {MTPConstants.OBJECT_TITLE, PortableDevicePKeys.WPD_MEDIA_TITLE},
+                    {MTPConstants.OBJECT_DATE_AUTHORED, PortableDevicePKeys.WPD_OBJECT_DATE_AUTHORED},
+                    {MTPConstants.OBJECT_DATE_CREATED, PortableDevicePKeys.WPD_OBJECT_DATE_CREATED},
+                    {MTPConstants.OBJECT_MODIFIED, PortableDevicePKeys.WPD_OBJECT_DATE_MODIFIED},
+                    {MTPConstants.OBJECT_FORMAT, PortableDevicePKeys.WPD_OBJECT_FORMAT},
+                    {MTPConstants.OBJECT_DRM_PROTECTED, PortableDevicePKeys.WPD_OBJECT_IS_DRM_PROTECTED},
+                    {MTPConstants.OBJECT_FILENAME, PortableDevicePKeys.WPD_OBJECT_ORIGINAL_FILE_NAME},
+                    {MTPConstants.OBJECT_NAME, PortableDevicePKeys.WPD_OBJECT_NAME},
+                    {MTPConstants.OBJECT_PERSISTENT_ID, PortableDevicePKeys.WPD_OBJECT_PERSISTENT_UNIQUE_ID},
+                    {MTPConstants.OBJECT_TOTAL_BITRATE, PortableDevicePKeys.WPD_MEDIA_TOTAL_BITRATE},
+                    {MTPConstants.OBJECT_SKIP_COUNT, PortableDevicePKeys.WPD_MEDIA_SKIP_COUNT},
+                    {MTPConstants.OBJECT_SAMPLE_RATE, PortableDevicePKeys.WPD_MEDIA_SAMPLE_RATE},
+                    {MTPConstants.OBJECT_RELEASE_DATE, PortableDevicePKeys.WPD_MEDIA_RELEASE_DATE},
+                    {MTPConstants.OBJECT_LAST_BUILD_DATE, PortableDevicePKeys.WPD_MEDIA_LAST_BUILD_DATE},
+                    {MTPConstants.OBJECT_LAST_ACCESSED_TIME, PortableDevicePKeys.WPD_MEDIA_LAST_ACCESSED_TIME},
+                    {MTPConstants.OBJECT_BITRATE_TYPE, PortableDevicePKeys.WPD_MEDIA_BITRATE_TYPE},
+                    {MTPConstants.OBJECT_ALBUM_ART, PortableDevicePKeys.WPD_RESOURCE_ALBUM_ART},
+                    {MTPConstants.DEVICE_FIRMWARE_VERSION, PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION},
+                    {MTPConstants.DEVICE_FRIENDLY_NAME, PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME},
+                    {MTPConstants.DEVICE_MANUFACTURER, PortableDevicePKeys.WPD_DEVICE_MANUFACTURER},
+                    {MTPConstants.DEVICE_MODEL, PortableDevicePKeys.WPD_DEVICE_MODEL},
+                    {MTPConstants.DEVICE_BATTERY_LEVEL, PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL},
+                    {MTPConstants.DEVICE_POWER_SOURCE, PortableDevicePKeys.WPD_DEVICE_POWER_SOURCE},
+                    {MTPConstants.DEVICE_SERIAL_NUMBER, PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER},
+                    {MTPConstants.OBJECT_CONTENT_TYPE, PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE}
+                };
 
             _portableDeviceGuidWithName = MakeGlobalDictionary();
         }
@@ -137,30 +140,17 @@ namespace PortableDeviceLib
 
         internal static string GetKeyNameFromPropkey(PortableDeviceApiLib._tagpropertykey propertyKey)
         {
-            foreach (KeyValuePair<string, PortableDeviceApiLib._tagpropertykey> de in _values)
+            foreach (KeyValuePair<string, _tagpropertykey> de in _values.Where(de => (propertyKey.pid == de.Value.pid) && (propertyKey.fmtid == de.Value.fmtid)))
             {
-                if ((propertyKey.pid == de.Value.pid) && (propertyKey.fmtid == de.Value.fmtid))
-                {
-                    return (string)de.Key;
-                }
+                return (string)de.Key;
             }
 
             return (propertyKey.pid.ToString() + " " + propertyKey.fmtid.ToString());
-
         }
 
         private static Dictionary<Guid, string> MakeGlobalDictionary()
         {
-            Dictionary<Guid, string> dic = new Dictionary<Guid, string>();
-            foreach (FieldInfo fi in typeof(PortableDeviceGuids).GetFields())
-            {
-                dic.Add((Guid)fi.GetValue(null), fi.Name);
-            }
-
-            return dic;
+            return typeof (PortableDeviceGuids).GetFields().ToDictionary(fi => (Guid) fi.GetValue(null), fi => fi.Name);
         }
-
-        
-
     }
 }
