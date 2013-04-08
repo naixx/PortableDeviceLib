@@ -49,7 +49,7 @@ namespace PortableDeviceLib
         private PortableDeviceApiLib.PortableDeviceClass portableDeviceClass;
         private Dictionary<string, object> values;
         private PortableDeviceCapabilities deviceCapabilities;
-        private PortableDeviceFonctionalObject content;
+        private PortableDeviceFunctionalObject content;
 
         private string adviseCookie;
         private PortableDeviceEventCallback eventCallback;
@@ -174,7 +174,7 @@ namespace PortableDeviceLib
         /// Gets all content from device
         /// If return is null be sure you call <see cref="PortableDevice.RefreshContent()"/> before
         /// </summary>
-        public PortableDeviceFonctionalObject Content
+        public PortableDeviceFunctionalObject Content
         {
             get
             {
@@ -375,7 +375,7 @@ namespace PortableDeviceLib
                 PortableDeviceApiLib.IPortableDeviceContent pContent;
                 this.portableDeviceClass.Content(out pContent);
 
-                this.content = new PortableDeviceFonctionalObject("DEVICE");
+                this.content = new PortableDeviceFunctionalObject("DEVICE");
                 Enumerate(ref pContent, "DEVICE", this.content);
 
                 this.RaisePropertyChanged("Content");

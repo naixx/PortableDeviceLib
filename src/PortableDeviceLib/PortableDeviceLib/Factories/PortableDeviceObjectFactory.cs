@@ -84,7 +84,7 @@ namespace PortableDeviceLib.Factories
 
         private PortableDeviceObject CreateFunctionalObject(string id, string name, string contentType, string format)
         {
-            var obj = new PortableDeviceFonctionalObject(id);
+            var obj = new PortableDeviceFunctionalObject(id);
             this.InitializeInstance(obj, name, contentType, format);
             return obj;
         }

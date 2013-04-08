@@ -8,13 +8,13 @@ namespace PortableDeviceLib.Model
     /// <summary>
     /// Represent a fonctional object
     /// </summary>
-    public class PortableDeviceFonctionalObject : PortableDeviceContainerObject
+    public class PortableDeviceFunctionalObject : PortableDeviceContainerObject
     {
         /// <summary>
-        /// Initialize a new instance of the <see cref="PortableDeviceFonctionalObject"/> class
+        /// Initialize a new instance of the <see cref="PortableDeviceFunctionalObject"/> class
         /// </summary>
         /// <param name="id"></param>
-        public PortableDeviceFonctionalObject(string id)
+        public PortableDeviceFunctionalObject(string id)
             : base(id)
         {
 
