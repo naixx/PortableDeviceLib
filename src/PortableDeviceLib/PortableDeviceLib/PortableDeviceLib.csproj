@@ -107,7 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ContentType.cs" />
-    <Compile Include="DevicePortablePKeys.cs" />
+    <Compile Include="PortableDevicePKeys.cs" />
     <Compile Include="Factories\PortableDeviceEventTypeFactory.cs" />
     <Compile Include="Factories\PortableDeviceObjectFactory.cs" />
     <Compile Include="FunctionalCategory.cs" />
@@ -115,7 +115,7 @@
     <Compile Include="Model\PortableDeviceEventDescription.cs" />
     <Compile Include="Model\PortableDeviceEventOption.cs" />
     <Compile Include="Model\PortableDeviceEventType.cs" />
-    <Compile Include="Model\PortableDeviceFonctionalObject.cs" />
+    <Compile Include="Model\PortableDeviceFunctionalObject.cs" />
     <Compile Include="MTPConstants.cs" />
     <Compile Include="PortableDevice.cs" />
     <Compile Include="Model\PortableDeviceContainerObject.cs" />
