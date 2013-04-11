@@ -30,15 +30,20 @@ namespace PortableDeviceLib
         public IEnumerable<PortableDeviceObject> Find(string path)
         {
             var list = new List<PortableDeviceObject>();
-            
+
             // Here, we skip actual service functional objects
-            foreach (var storage in storages)
+            foreach (PortableDeviceFunctionalObject storage in storages)
             {
-                var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
-                list.AddRange(FindInternal(actualPath, storage.Childs));
+                list.AddRange(Find(path, storage));
             }
 
             return list;
+        }
+
+        public IEnumerable<PortableDeviceObject> Find(string path, PortableDeviceFunctionalObject storage)
+        {
+            var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
+            return FindInternal(actualPath, storage.Childs);
         }
 
         private static IEnumerable<PortableDeviceObject> FindInternal(Queue<string> paths, IEnumerable<PortableDeviceObject> objectCollection)
@@ -48,8 +53,8 @@ namespace PortableDeviceLib
                 return res;
 
             string pathNode = paths.Dequeue();
-            
-            foreach (var deviceObject in objectCollection.Where(deviceObject => MatchesPath(deviceObject, pathNode)))
+
+            foreach (PortableDeviceObject deviceObject in objectCollection.Where(deviceObject => MatchesPath(deviceObject, pathNode)))
             {
                 if (paths.Count == 0)
                 {
