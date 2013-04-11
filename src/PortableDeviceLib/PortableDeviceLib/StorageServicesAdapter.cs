@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using PortableDeviceApiLib;
 using PortableDeviceLib.Model;
@@ -25,6 +26,50 @@ namespace PortableDeviceLib
         }
 
         public ReadOnlyObservableCollection<PortableDeviceFunctionalObject> Storages { get; set; }
+
+        public IEnumerable<PortableDeviceObject> Find(string path)
+        {
+            var list = new List<PortableDeviceObject>();
+            
+            // Here, we skip actual service functional objects
+            foreach (var storage in storages)
+            {
+                var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
+                list.AddRange(FindInternal(actualPath, storage.Childs));
+            }
+
+            return list;
+        }
+
+        private static IEnumerable<PortableDeviceObject> FindInternal(Queue<string> paths, IEnumerable<PortableDeviceObject> objectCollection)
+        {
+            var res = new List<PortableDeviceObject>();
+            if (paths.Count == 0)
+                return res;
+
+            string pathNode = paths.Dequeue();
+            
+            foreach (var deviceObject in objectCollection.Where(deviceObject => MatchesPath(deviceObject, pathNode)))
+            {
+                if (paths.Count == 0)
+                {
+                    res.Add(deviceObject);
+                }
+                else
+                {
+                    var folder = deviceObject as PortableDeviceContainerObject;
+                    if (folder != null)
+                        res.AddRange(FindInternal(new Queue<string>(paths), folder.Childs));
+                }
+            }
+
+            return res;
+        }
+
+        private static bool MatchesPath(PortableDeviceObject portableDeviceObject, string pathNode)
+        {
+            return Regex.IsMatch(portableDeviceObject.Name, pathNode, RegexOptions.IgnoreCase);
+        }
 
         /// <summary>
         ///     Transfer from device to computer
