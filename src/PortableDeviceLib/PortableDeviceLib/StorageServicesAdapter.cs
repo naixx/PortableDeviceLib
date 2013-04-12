@@ -27,6 +27,15 @@ namespace PortableDeviceLib
 
         public ReadOnlyObservableCollection<PortableDeviceFunctionalObject> Storages { get; set; }
 
+        /// <summary>
+        /// Finds collection of specified objects in <b>each</b> storage service of WPD device
+        /// 
+        /// /android/music/mp3
+        /// /.*/.*/mp3
+        /// /android/sic
+        /// </summary>
+        /// <param name="path">Represents a '/' delimeted path; each node can be RegEx pattern, not wildcard pattern; </param>
+        /// <returns></returns>
         public IEnumerable<PortableDeviceObject> Find(string path)
         {
             var list = new List<PortableDeviceObject>();
@@ -40,6 +49,16 @@ namespace PortableDeviceLib
             return list;
         }
 
+        /// <summary>
+        /// Finds collection of specified objects in specific storage service of WPD device
+        /// 
+        /// /android/music/mp3
+        /// /.*/.*/mp3
+        /// /android/sic
+        /// </summary>
+        /// <param name="path">Represents a '/' delimeted path; each node can be RegEx pattern, not wildcard pattern; </param>
+        /// <param name="storage"></param>
+        /// <returns></returns>
         public IEnumerable<PortableDeviceObject> Find(string path, PortableDeviceFunctionalObject storage)
         {
             var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
@@ -73,6 +92,10 @@ namespace PortableDeviceLib
 
         private static bool MatchesPath(PortableDeviceObject portableDeviceObject, string pathNode)
         {
+            // Defined content types that represent filesystem object don't contain extension
+            var file = portableDeviceObject as PortableDeviceFileObject;
+            if (file != null)
+                return Regex.IsMatch(file.FileName, pathNode, RegexOptions.IgnoreCase);
             return Regex.IsMatch(portableDeviceObject.Name, pathNode, RegexOptions.IgnoreCase);
         }
 

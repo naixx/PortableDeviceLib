@@ -87,8 +87,7 @@ namespace PortableDeviceLib.Factories
 
         private PortableDeviceObject CreateFunctionalObject(IPortableDeviceValues values)
         {
-            var obj = new PortableDeviceFunctionalObject(GetObjectId(values));
-            InitializeInstance(obj, values);
+            var obj = CreateObject<PortableDeviceFunctionalObject>(values);
 
             Guid category;
             values.GetGuidValue(ref PortableDevicePKeys.WPD_FUNCTIONAL_OBJECT_CATEGORY, out category);
@@ -99,15 +98,31 @@ namespace PortableDeviceLib.Factories
 
         private PortableDeviceObject CreateFolderObject(IPortableDeviceValues values)
         {
-            var obj = new PortableDeviceFolderObject(GetObjectId(values));
+            var obj = CreateObject<PortableDeviceFolderObject>(values);
+            return obj;
+        }
+
+        private T CreateObject<T>(IPortableDeviceValues values) where T : PortableDeviceObject
+        {
+            var obj = (T) Activator.CreateInstance(typeof (T), GetObjectId(values));
             InitializeInstance(obj, values);
             return obj;
         }
 
         private PortableDeviceObject CreateGenericObject(IPortableDeviceValues values)
         {
-            var obj = new PortableDeviceObject(GetObjectId(values));
-            InitializeInstance(obj, values);
+            string filename;
+            try
+            {
+                values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_ORIGINAL_FILE_NAME, out filename);
+            }
+            catch (Exception e)
+            {
+                return CreateObject<PortableDeviceObject>(values);
+            }
+
+            var obj = CreateObject<PortableDeviceFileObject>(values);
+            obj.FileName = filename;
             return obj;
         }
 
