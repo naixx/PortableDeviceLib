@@ -8,6 +8,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using PortableDeviceApiLib;
 using PortableDeviceLib.Model;
+using PortableDeviceTypesLib;
+using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
+using IStream = PortableDeviceApiLib.IStream;
+using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
 
 namespace PortableDeviceLib
 {
@@ -28,11 +32,10 @@ namespace PortableDeviceLib
         public ReadOnlyObservableCollection<PortableDeviceFunctionalObject> Storages { get; set; }
 
         /// <summary>
-        /// Finds collection of specified objects in <b>each</b> storage service of WPD device
-        /// 
-        /// /android/music/mp3
-        /// /.*/.*/mp3
-        /// /android/sic
+        ///     Finds collection of specified objects in <b>each</b> storage service of WPD device
+        ///     /android/music/mp3
+        ///     /.*/.*/mp3
+        ///     /android/sic
         /// </summary>
         /// <param name="path">Represents a '/' delimeted path; each node can be RegEx pattern, not wildcard pattern; </param>
         /// <returns></returns>
@@ -50,11 +53,10 @@ namespace PortableDeviceLib
         }
 
         /// <summary>
-        /// Finds collection of specified objects in specific storage service of WPD device
-        /// 
-        /// /android/music/mp3
-        /// /.*/.*/mp3
-        /// /android/sic
+        ///     Finds collection of specified objects in specific storage service of WPD device
+        ///     /android/music/mp3
+        ///     /.*/.*/mp3
+        ///     /android/sic
         /// </summary>
         /// <param name="path">Represents a '/' delimeted path; each node can be RegEx pattern, not wildcard pattern; </param>
         /// <param name="storage"></param>
@@ -64,6 +66,125 @@ namespace PortableDeviceLib
             var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
             return FindInternal(actualPath, storage.Childs);
         }
+
+        /// <summary>
+        ///     Transfer from device to computer
+        ///     Source : http://cgeers.com/2011/08/13/wpd-transferring-content/
+        ///     Inspired by nikon-camera-control
+        /// </summary>
+        /// <param name="deviceObject"></param>
+        /// <param name="targetStream"></param>
+        public void Pull(PortableDeviceObject deviceObject, Stream targetStream)
+        {
+            IPortableDeviceContent content;
+            portableDeviceClass.Content(out content);
+            IPortableDeviceResources resources;
+            content.Transfer(out resources);
+            
+            IStream wpdStream;
+            uint optimalTransferSize = 0;
+
+            _tagpropertykey property = PortableDevicePKeys.WPD_RESOURCE_DEFAULT;
+
+            int numRetries = 3;
+            const int retryTimeout = 500;
+            const uint STGM_READ = 0;
+            do
+            {
+                try
+                {
+                    resources.GetStream(deviceObject.ID, ref property, STGM_READ, ref optimalTransferSize, out wpdStream);
+                    numRetries = 0;
+                }
+                catch (COMException comException)
+                {
+                    if ((uint) comException.ErrorCode == PortableDeviceErrorCodes.ERROR_BUSY)
+                    {
+                        Thread.Sleep(retryTimeout);
+                    }
+                    throw;
+                }
+            } while (numRetries-- > 0);
+
+            var sourceStream = (System.Runtime.InteropServices.ComTypes.IStream) wpdStream;
+            unsafe
+            {
+                var buffer = new byte[1024*256];
+                int bytesRead;
+                do
+                {
+                    sourceStream.Read(buffer, buffer.Length, new IntPtr(&bytesRead));
+                    if (bytesRead == 0)
+                        break;
+                    targetStream.Write(buffer, 0, bytesRead);
+                } while (bytesRead > 0);
+
+                targetStream.Close();
+            }
+            Marshal.ReleaseComObject(sourceStream);
+            Marshal.ReleaseComObject(wpdStream);
+        }
+
+        public void Push(PortableDeviceObject parentObject, Stream sourceStream, string originalFileName, ulong size)
+        {
+            Push(parentObject, sourceStream, originalFileName, originalFileName, size);
+        }
+
+        /// <summary>
+        ///     Inspired by http://cgeers.com/2012/04/17/wpd-transfer-content-to-a-device/
+        /// </summary>
+        /// <param name="parentObject"></param>
+        /// <param name="sourceStream"></param>
+        /// <param name="name"></param>
+        /// <param name="originalFileName"></param>
+        /// <param name="size"></param>
+        public void Push(PortableDeviceObject parentObject, Stream sourceStream, string name, string originalFileName, ulong size)
+        {
+            IPortableDeviceContent content;
+            portableDeviceClass.Content(out content);
+            IPortableDeviceValues values = GetRequiredPropertiesForContentType(parentObject, name, originalFileName, size);
+
+            IStream tempStream;
+            uint optimalTransferSizeBytes = 0;
+            content.CreateObjectWithPropertiesAndData(values, out tempStream, ref optimalTransferSizeBytes, null);
+
+            var targetStream = (System.Runtime.InteropServices.ComTypes.IStream) tempStream;
+
+            try
+            {
+                var buffer = new byte[optimalTransferSizeBytes];
+                int bytesRead;
+                do
+                {
+                    bytesRead = sourceStream.Read(buffer, 0, (int) optimalTransferSizeBytes);
+                    IntPtr pcbWritten = IntPtr.Zero;
+                    targetStream.Write(buffer, (int) optimalTransferSizeBytes, pcbWritten);
+
+                    if (bytesRead < (int) optimalTransferSizeBytes)
+                        targetStream.Write(buffer, bytesRead, pcbWritten);
+                    else
+                        targetStream.Write(buffer, (int) optimalTransferSizeBytes, pcbWritten);
+                } while (bytesRead > 0);
+
+                targetStream.Commit(0);
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(tempStream);
+            }
+        }
+
+        private IPortableDeviceValues GetRequiredPropertiesForContentType(PortableDeviceObject parentObject, string name, string originalFileName, ulong size)
+        {
+            var values = (IPortableDeviceValues) new PortableDeviceValues();
+            values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_PARENT_ID, parentObject.ID);
+            values.SetUnsignedLargeIntegerValue(PortableDevicePKeys.WPD_OBJECT_SIZE, size);
+            values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_ORIGINAL_FILE_NAME, originalFileName);
+            values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_NAME, name);
+            return values;
+        }
+
+        #region private
 
         private static IEnumerable<PortableDeviceObject> FindInternal(Queue<string> paths, IEnumerable<PortableDeviceObject> objectCollection)
         {
@@ -99,65 +220,13 @@ namespace PortableDeviceLib
             return Regex.IsMatch(portableDeviceObject.Name, pathNode, RegexOptions.IgnoreCase);
         }
 
-        /// <summary>
-        ///     Transfer from device to computer
-        ///     Source : http://cgeers.com/2011/08/13/wpd-transferring-content/
-        ///     Inspired by nikon-camera-control
-        /// </summary>
-        /// <param name="deviceObject"></param>
-        /// <param name="targetStream"></param>
-        public void TransferFromDevice(PortableDeviceObject deviceObject, Stream targetStream)
-        {
-            IPortableDeviceContent content;
-            portableDeviceClass.Content(out content);
-            IPortableDeviceResources resources;
-            content.Transfer(out resources);
-
-            IStream wpdStream;
-            uint optimalTransferSize = 0;
-
-            _tagpropertykey property = PortableDevicePKeys.WPD_RESOURCE_DEFAULT;
-
-            int numRetries = 3;
-            const int retryTimeout = 500;
-            do
-            {
-                try
-                {
-                    resources.GetStream(deviceObject.ID, ref property, 0, ref optimalTransferSize, out wpdStream);
-                }
-                catch (COMException comException)
-                {
-                    if ((uint) comException.ErrorCode == PortableDeviceErrorCodes.ERROR_BUSY)
-                    {
-                        Thread.Sleep(retryTimeout);
-                    }
-                    throw;
-                }
-            } while (numRetries-- > 0);
-
-            var sourceStream = (System.Runtime.InteropServices.ComTypes.IStream) wpdStream;
-            unsafe
-            {
-                var buffer = new byte[1024*256];
-                int bytesRead;
-                do
-                {
-                    sourceStream.Read(buffer, buffer.Length, new IntPtr(&bytesRead));
-                    targetStream.Write(buffer, 0, bytesRead);
-                } while (bytesRead > 0);
-
-                targetStream.Close();
-            }
-            Marshal.ReleaseComObject(sourceStream);
-            Marshal.ReleaseComObject(wpdStream);
-        }
-
         private IEnumerable<PortableDeviceFunctionalObject> ExtractStorageServices()
         {
             return from fo in device.Content.Childs.OfType<PortableDeviceFunctionalObject>()
                    where fo.Category == PortableDeviceGuids.WPD_FUNCTIONAL_CATEGORY_STORAGE
                    select fo;
         }
+
+        #endregion
     }
 }

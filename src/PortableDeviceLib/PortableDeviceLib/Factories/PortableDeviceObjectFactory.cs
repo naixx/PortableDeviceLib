@@ -116,7 +116,7 @@ namespace PortableDeviceLib.Factories
             {
                 values.GetStringValue(ref PortableDevicePKeys.WPD_OBJECT_ORIGINAL_FILE_NAME, out filename);
             }
-            catch (Exception e)
+            catch
             {
                 return CreateObject<PortableDeviceObject>(values);
             }
