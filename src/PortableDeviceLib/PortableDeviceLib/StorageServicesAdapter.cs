@@ -80,7 +80,7 @@ namespace PortableDeviceLib
             portableDeviceClass.Content(out content);
             IPortableDeviceResources resources;
             content.Transfer(out resources);
-            
+
             IStream wpdStream;
             uint optimalTransferSize = 0;
 
@@ -158,7 +158,6 @@ namespace PortableDeviceLib
                 {
                     bytesRead = sourceStream.Read(buffer, 0, (int) optimalTransferSizeBytes);
                     IntPtr pcbWritten = IntPtr.Zero;
-                    targetStream.Write(buffer, (int) optimalTransferSizeBytes, pcbWritten);
 
                     if (bytesRead < (int) optimalTransferSizeBytes)
                         targetStream.Write(buffer, bytesRead, pcbWritten);
@@ -172,6 +171,21 @@ namespace PortableDeviceLib
             {
                 Marshal.ReleaseComObject(tempStream);
             }
+        }
+
+        public string Mkdir(PortableDeviceObject parentObject, string name)
+        {
+            IPortableDeviceContent content;
+            portableDeviceClass.Content(out content);
+
+            var values = (IPortableDeviceValues) new PortableDeviceValues();
+            values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_PARENT_ID, parentObject.ID);
+            values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_ORIGINAL_FILE_NAME, name);
+            values.SetGuidValue(PortableDevicePKeys.WPD_OBJECT_CONTENT_TYPE, PortableDeviceGuids.WPD_CONTENT_TYPE_FOLDER);
+            string objId = String.Empty;
+            content.CreateObjectWithPropertiesOnly(values, ref objId);
+
+            return objId;
         }
 
         private IPortableDeviceValues GetRequiredPropertiesForContentType(PortableDeviceObject parentObject, string name, string originalFileName, ulong size)
