@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using PortableDeviceApiLib;
 using PortableDeviceLib.Factories;
 using PortableDeviceLib.Model;
@@ -331,7 +332,7 @@ namespace PortableDeviceLib
             }
         }
 
-        private void Enumerate(ref IPortableDeviceContent pContent, string parentID, PortableDeviceContainerObject node)
+        internal void Enumerate(ref IPortableDeviceContent pContent, string parentID, PortableDeviceContainerObject node, bool detectNewObjects = false)
         {
             IPortableDeviceProperties properties;
             pContent.Properties(out properties);
@@ -346,6 +347,14 @@ namespace PortableDeviceLib
                 pEnum.Next(1, out objectID, ref cFetched);
 
                 if (cFetched <= 0) continue;
+
+                if (detectNewObjects)
+                {
+                    var q = from child in node.Childs
+                            where child.ID == objectID
+                            select child;
+                    if (q.Any()) continue;
+                }
 
                 PortableDeviceObject current = ExtractInformation(properties, objectID);
                 node.AddChild(current);

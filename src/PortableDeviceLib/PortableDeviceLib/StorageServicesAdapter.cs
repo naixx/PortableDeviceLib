@@ -142,7 +142,7 @@ namespace PortableDeviceLib
         {
             IPortableDeviceContent content;
             portableDeviceClass.Content(out content);
-            IPortableDeviceValues values = GetRequiredPropertiesForContentType(parentObject, name, originalFileName, size);
+            IPortableDeviceValues values = GetRequiredPropertiesForPush(parentObject, name, originalFileName, size);
 
             IStream tempStream;
             uint optimalTransferSizeBytes = 0;
@@ -173,7 +173,7 @@ namespace PortableDeviceLib
             }
         }
 
-        public string Mkdir(PortableDeviceObject parentObject, string name)
+        public PortableDeviceObject Mkdir(PortableDeviceContainerObject parentObject, string name)
         {
             IPortableDeviceContent content;
             portableDeviceClass.Content(out content);
@@ -185,10 +185,18 @@ namespace PortableDeviceLib
             string objId = String.Empty;
             content.CreateObjectWithPropertiesOnly(values, ref objId);
 
-            return objId;
+            device.Enumerate(ref content, parentObject.ID, parentObject, detectNewObjects: true);
+
+            var q = from obj in parentObject.Childs
+                    where obj.ID == objId
+                    select obj;
+
+            return q.First();
         }
 
-        private IPortableDeviceValues GetRequiredPropertiesForContentType(PortableDeviceObject parentObject, string name, string originalFileName, ulong size)
+        #region private
+
+        private IPortableDeviceValues GetRequiredPropertiesForPush(PortableDeviceObject parentObject, string name, string originalFileName, ulong size)
         {
             var values = (IPortableDeviceValues) new PortableDeviceValues();
             values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_PARENT_ID, parentObject.ID);
@@ -197,8 +205,6 @@ namespace PortableDeviceLib
             values.SetStringValue(PortableDevicePKeys.WPD_OBJECT_NAME, name);
             return values;
         }
-
-        #region private
 
         private static IEnumerable<PortableDeviceObject> FindInternal(Queue<string> paths, IEnumerable<PortableDeviceObject> objectCollection)
         {
