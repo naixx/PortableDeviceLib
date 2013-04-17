@@ -363,7 +363,7 @@ namespace PortableDeviceLib
             } while (cFetched > 0);
         }
 
-        private static PortableDeviceObject ExtractInformation(IPortableDeviceProperties properties, string objectId)
+        private PortableDeviceObject ExtractInformation(IPortableDeviceProperties properties, string objectId)
         {
             IPortableDeviceKeyCollection keys;
             properties.GetSupportedProperties(objectId, out keys);
