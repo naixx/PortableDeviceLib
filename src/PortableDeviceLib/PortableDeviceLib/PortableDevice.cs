@@ -41,10 +41,12 @@ namespace PortableDeviceLib
     public class PortableDevice : IDisposable, INotifyPropertyChanged
     {
         private readonly object dispatcher; //Use an object for thread safety
+        private const string DEVICE = "DEVICE";
 
         private string adviseCookie;
         private PortableDeviceEventCallback eventCallback;
         private Dictionary<string, object> values;
+        private PropertiesHelper propertiesHelper;
 
         #region Constructors
 
@@ -59,8 +61,8 @@ namespace PortableDeviceLib
             dispatcher = new object();
             PortableDeviceClass = new PortableDeviceClass();
             values = new Dictionary<string, object>();
-
             DeviceId = deviceId;
+            propertiesHelper = new PropertiesHelper(this);
         }
 
         #endregion
@@ -82,7 +84,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string FriendlyName
         {
-            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME); }
+            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME); }
         }
 
         /// <summary>
@@ -90,7 +92,7 @@ namespace PortableDeviceLib
         /// </summary>
         public int BatteryLevel
         {
-            get { return GetIntegerProperty(PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL); }
+            get { return propertiesHelper.GetIntegerProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL); }
         }
 
         /// <summary>
@@ -98,7 +100,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string Model
         {
-            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_MODEL); }
+            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_MODEL); }
         }
 
         /// <summary>
@@ -106,7 +108,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string FirmwareVersion
         {
-            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION); }
+            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION); }
         }
 
         /// <summary>
@@ -114,7 +116,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string SerialNumber
         {
-            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER); }
+            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER); }
         }
 
         /// <summary>
@@ -122,7 +124,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string DeviceType
         {
-            get { return GetStringProperty(PortableDevicePKeys.WPD_DEVICE_TYPE); }
+            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_TYPE); }
         }
 
         /// <summary>
@@ -265,50 +267,6 @@ namespace PortableDeviceLib
         #endregion
 
         #region Private functions
-
-        private string GetStringProperty(_tagpropertykey propertyKey)
-        {
-            //Ensure we are connected to device
-            CheckIfIsConnected();
-
-            IPortableDeviceContent content;
-            IPortableDeviceProperties properties;
-            IPortableDeviceValues propertyValues;
-
-            PortableDeviceClass.Content(out content);
-            content.Properties(out properties);
-
-            properties.GetValues("DEVICE", null, out propertyValues);
-
-            string val;
-            propertyValues.GetStringValue(ref propertyKey, out val);
-
-            return val;
-        }
-
-        private int GetIntegerProperty(_tagpropertykey propertyKey)
-        {
-            //Ensure we are connected to device
-            CheckIfIsConnected();
-
-            IPortableDeviceContent content;
-            IPortableDeviceProperties properties;
-            IPortableDeviceValues propertyValues;
-
-            PortableDeviceClass.Content(out content);
-            content.Properties(out properties);
-            properties.GetValues("DEVICE", null, out propertyValues);
-
-            float val;
-            propertyValues.GetFloatValue(ref propertyKey, out val);
-            return Convert.ToInt32(val);
-        }
-
-        private void CheckIfIsConnected()
-        {
-            if (!IsConnected)
-                throw new Exception("Not connected");
-        }
 
         private void ExtractDeviceCapabilities()
         {
