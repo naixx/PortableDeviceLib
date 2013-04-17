@@ -67,6 +67,16 @@ namespace PortableDeviceLib
             return FindInternal(actualPath, storage.Childs);
         }
 
+        public bool Exists(string path)
+        {
+            return Find(path).Any();
+        }
+
+        public bool Exists(string path, PortableDeviceFunctionalObject storage)
+        {
+            return Find(path, storage).Any();
+        }
+
         /// <summary>
         ///     Transfer from device to computer
         ///     Source : http://cgeers.com/2011/08/13/wpd-transferring-content/
