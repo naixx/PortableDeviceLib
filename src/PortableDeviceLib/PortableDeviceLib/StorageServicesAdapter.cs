@@ -61,10 +61,10 @@ namespace PortableDeviceLib
         /// <param name="path">Represents a '/' delimeted path; each node can be RegEx pattern, not wildcard pattern; </param>
         /// <param name="storage"></param>
         /// <returns></returns>
-        public IEnumerable<PortableDeviceObject> Find(string path, PortableDeviceFunctionalObject storage)
+        public IEnumerable<PortableDeviceObject> Find(string path, PortableDeviceContainerObject parent)
         {
             var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
-            return FindInternal(actualPath, storage.Childs);
+            return FindInternal(actualPath, parent.Childs);
         }
 
         public bool Exists(string path)
@@ -135,9 +135,9 @@ namespace PortableDeviceLib
             Marshal.ReleaseComObject(wpdStream);
         }
 
-        public void Push(PortableDeviceObject parentObject, Stream sourceStream, string originalFileName, ulong size)
+        public PortableDeviceObject Push(PortableDeviceContainerObject parentObject, Stream sourceStream, string originalFileName, ulong size)
         {
-            Push(parentObject, sourceStream, originalFileName, originalFileName, size);
+            return Push(parentObject, sourceStream, originalFileName, originalFileName, size);
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace PortableDeviceLib
         /// <param name="name"></param>
         /// <param name="originalFileName"></param>
         /// <param name="size"></param>
-        public void Push(PortableDeviceObject parentObject, Stream sourceStream, string name, string originalFileName, ulong size)
+        public PortableDeviceObject Push(PortableDeviceContainerObject parentObject, Stream sourceStream, string name, string originalFileName, ulong size)
         {
             IPortableDeviceContent content;
             portableDeviceClass.Content(out content);
@@ -176,6 +176,11 @@ namespace PortableDeviceLib
                 } while (bytesRead > 0);
 
                 targetStream.Commit(0);
+
+                device.Enumerate(ref content, parentObject.ID, parentObject, detectNewObjects: true);
+                
+                // TODO There is no IPortableDeviceDataStream in C# port to get ID, so we will make a bicycle
+                return Find("^" + originalFileName + "$", parentObject).First();
             }
             finally
             {
