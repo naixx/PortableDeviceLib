@@ -9,14 +9,22 @@ using System.Threading;
 using PortableDeviceApiLib;
 using PortableDeviceLib.Model;
 using PortableDeviceTypesLib;
+using IPortableDevicePropVariantCollection = PortableDeviceApiLib.IPortableDevicePropVariantCollection;
 using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
 using IStream = PortableDeviceApiLib.IStream;
 using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
+using tag_inner_PROPVARIANT = PortableDeviceApiLib.tag_inner_PROPVARIANT;
 
 namespace PortableDeviceLib
 {
     public class StorageServicesAdapter
     {
+        public enum DeleteObjectOptions : uint
+        {
+            NO_RECURSION = 0,
+            WITH_RECURSION = 1
+        }
+
         private readonly PortableDevice device;
         private readonly PortableDeviceClass portableDeviceClass;
         private readonly ObservableCollection<PortableDeviceFunctionalObject> storages;
@@ -209,7 +217,37 @@ namespace PortableDeviceLib
             return q.First();
         }
 
+        public void Delete(PortableDeviceObject obj, DeleteObjectOptions opts = DeleteObjectOptions.NO_RECURSION)
+        {
+            Delete(new[] {obj}, opts);
+        }
+
+        public void Delete(IEnumerable<PortableDeviceObject> objects, DeleteObjectOptions opts = DeleteObjectOptions.NO_RECURSION)
+        {
+            IPortableDeviceContent content;
+            portableDeviceClass.Content(out content);
+            var objectIds = (IPortableDevicePropVariantCollection) new PortableDevicePropVariantCollection();
+
+            foreach (var obj in objects)
+            {
+                tag_inner_PROPVARIANT propvarValue;
+                ConvertObjectsIdToPropVariant(obj, out propvarValue);
+
+                objectIds.Add(propvarValue);
+            }
+            
+            IPortableDevicePropVariantCollection results = null;
+            content.Delete((uint)opts, objectIds, ref results);
+        }
+
         #region private
+
+        private void ConvertObjectsIdToPropVariant(PortableDeviceObject obj, out tag_inner_PROPVARIANT propvarValue)
+        {
+            var pValues = (IPortableDeviceValues) new PortableDeviceValuesClass();
+            pValues.SetStringValue(PortableDevicePKeys.WPD_OBJECT_ID, obj.ID);
+            pValues.GetValue(ref PortableDevicePKeys.WPD_OBJECT_ID, out propvarValue);
+        }
 
         private IPortableDeviceValues GetRequiredPropertiesForPush(PortableDeviceObject parentObject, string name, string originalFileName, ulong size)
         {
