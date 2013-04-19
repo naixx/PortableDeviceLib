@@ -1,6 +1,5 @@
 ﻿using System;
 using PortableDeviceApiLib;
-using PortableDeviceLib.Model;
 using PortableDeviceTypesLib;
 using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
 using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
@@ -85,7 +84,7 @@ namespace PortableDeviceLib
                 });
         }
 
-        public void SetProperty(string objectId, _tagpropertykey propertyKey, Action<IPortableDeviceValues> setValues)
+        public void SetProperty(string objectId, _tagpropertykey propertyKey, Action<IPortableDeviceValues> setupValuesAction)
         {
             int canWrite;
             GetPropertyAttributes(objectId, propertyKey).GetBoolValue(PortableDevicePKeys.WPD_PROPERTY_ATTRIBUTE_CAN_WRITE, out canWrite);
@@ -95,9 +94,10 @@ namespace PortableDeviceLib
 
             var values = (IPortableDeviceValues) new PortableDeviceValuesClass();
 
-            setValues(values);
+            setupValuesAction(values);
 
-            IPortableDeviceValues result;
+            var result = (IPortableDeviceValues) new PortableDeviceValuesClass();
+
             GetProperties().SetValues(objectId, values, out result);
         }
 

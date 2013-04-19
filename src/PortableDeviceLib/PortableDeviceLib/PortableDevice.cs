@@ -40,13 +40,12 @@ namespace PortableDeviceLib
     /// </summary>
     public class PortableDevice : IDisposable, INotifyPropertyChanged
     {
-        private readonly object dispatcher; //Use an object for thread safety
         private const string DEVICE = "DEVICE";
+        private readonly object dispatcher; //Use an object for thread safety
 
         private string adviseCookie;
         private PortableDeviceEventCallback eventCallback;
         private Dictionary<string, object> values;
-        private PropertiesHelper propertiesHelper;
 
         #region Constructors
 
@@ -62,7 +61,7 @@ namespace PortableDeviceLib
             PortableDeviceClass = new PortableDeviceClass();
             values = new Dictionary<string, object>();
             DeviceId = deviceId;
-            propertiesHelper = new PropertiesHelper(this);
+            PropertiesHelper = new PropertiesHelper(this);
         }
 
         #endregion
@@ -84,7 +83,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string FriendlyName
         {
-            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME); }
+            get { return PropertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_FRIENDLY_NAME); }
         }
 
         /// <summary>
@@ -92,7 +91,7 @@ namespace PortableDeviceLib
         /// </summary>
         public int BatteryLevel
         {
-            get { return propertiesHelper.GetIntegerProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL); }
+            get { return PropertiesHelper.GetIntegerProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_POWER_LEVEL); }
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string Model
         {
-            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_MODEL); }
+            get { return PropertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_MODEL); }
         }
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string FirmwareVersion
         {
-            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION); }
+            get { return PropertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_FIRMWARE_VERSION); }
         }
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string SerialNumber
         {
-            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER); }
+            get { return PropertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_SERIAL_NUMBER); }
         }
 
         /// <summary>
@@ -124,7 +123,7 @@ namespace PortableDeviceLib
         /// </summary>
         public string DeviceType
         {
-            get { return propertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_TYPE); }
+            get { return PropertiesHelper.GetStringProperty(DEVICE, PortableDevicePKeys.WPD_DEVICE_TYPE); }
         }
 
         /// <summary>
@@ -139,6 +138,8 @@ namespace PortableDeviceLib
         public PortableDeviceFunctionalObject Content { get; private set; }
 
         internal PortableDeviceClass PortableDeviceClass { get; private set; }
+
+        internal PropertiesHelper PropertiesHelper { get; private set; }
 
         #endregion
 

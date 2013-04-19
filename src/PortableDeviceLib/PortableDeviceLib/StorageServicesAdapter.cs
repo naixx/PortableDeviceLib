@@ -178,7 +178,7 @@ namespace PortableDeviceLib
                 targetStream.Commit(0);
 
                 device.Enumerate(ref content, parentObject.ID, parentObject, detectNewObjects: true);
-                
+
                 // TODO There is no IPortableDeviceDataStream in C# port to get ID, so we will make a bicycle
                 return Find("^" + originalFileName + "$", parentObject).First();
             }
