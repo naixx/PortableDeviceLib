@@ -23,8 +23,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using PortableDeviceLib.Model;
 using PortableDeviceTypesLib;
 using IPortableDeviceValues = PortableDeviceApiLib.IPortableDeviceValues;
 using _tagpropertykey = PortableDeviceApiLib._tagpropertykey;
@@ -50,6 +53,82 @@ namespace PortableDeviceLib
         public short boolValue;
     }
 
+    public interface IObjectEnumerateHelper
+    {
+        bool IsObjectMatching(PortableDeviceObject obj);
+        bool IsLastNode { get; }
+
+        IObjectEnumerateHelper Next();
+    }
+
+    public class AllObjectEnumerateHelper : IObjectEnumerateHelper
+    {
+        public bool IsObjectMatching(PortableDeviceObject obj)
+        {
+            return true;
+        }
+
+        public bool IsLastNode
+        {
+            get { return false; }
+        }
+
+        public IObjectEnumerateHelper Next()
+        {
+            return this;
+        }
+    }
+
+    [DebuggerDisplay("Count = {paths.Count}")]
+    public class PathEnumerateHelper : IObjectEnumerateHelper
+    {
+        private readonly Queue<string> paths;
+
+        public PathEnumerateHelper(string path)
+        {
+            paths = new Queue<string>(path.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        private PathEnumerateHelper(Queue<string> paths)
+        {
+            this.paths = paths;
+        }
+
+        public bool IsObjectMatching(PortableDeviceObject obj)
+        {
+            if (paths.Count == 0)
+                return false;
+            var pathNode = paths.Peek();
+            return MatchesPath(obj, pathNode);
+        }
+
+        public bool IsLastNode
+        {
+            get { return paths.Count <= 1; }
+        }
+
+        public IObjectEnumerateHelper Next()
+        {
+            var deq = new Queue<string>(paths);
+            deq.Dequeue();
+            return new PathEnumerateHelper(deq);
+        }
+
+
+        private bool MatchesPath(PortableDeviceObject portableDeviceObject, string pathNode)
+        {
+            // Defined content types that represent filesystem object don't contain extension
+            var file = portableDeviceObject as PortableDeviceFileObject;
+            if (file != null)
+                return Regex.IsMatch(file.FileName, pathNode, RegexOptions.IgnoreCase);
+            return Regex.IsMatch(portableDeviceObject.Name, pathNode, RegexOptions.IgnoreCase);
+        }
+
+        public override string ToString()
+        {
+            return paths.ToString();
+        }
+    }
 
     internal static class PortableDeviceHelpers
     {

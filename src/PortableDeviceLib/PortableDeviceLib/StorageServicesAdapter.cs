@@ -71,8 +71,7 @@ namespace PortableDeviceLib
         /// <returns></returns>
         public IEnumerable<PortableDeviceObject> Find(string path, PortableDeviceContainerObject parent)
         {
-            var actualPath = new Queue<string>(path.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries));
-            return FindInternal(actualPath, parent.Childs);
+            return FindInternal(parent.Childs, new PathEnumerateHelper(path));
         }
 
         public bool Exists(string path)
@@ -185,7 +184,7 @@ namespace PortableDeviceLib
 
                 targetStream.Commit(0);
 
-                device.Enumerate(ref content, parentObject.ID, parentObject, detectNewObjects: true);
+                device.Update(ref content, parentObject);
 
                 // TODO There is no IPortableDeviceDataStream in C# port to get ID, so we will make a bicycle
                 return Find("^" + originalFileName + "$", parentObject).First();
@@ -208,7 +207,7 @@ namespace PortableDeviceLib
             string objId = String.Empty;
             content.CreateObjectWithPropertiesOnly(values, ref objId);
 
-            device.Enumerate(ref content, parentObject.ID, parentObject, detectNewObjects: true);
+            device.Update(ref content, parentObject);
 
             var q = from obj in parentObject.Childs
                     where obj.ID == objId
@@ -259,17 +258,13 @@ namespace PortableDeviceLib
             return values;
         }
 
-        private static IEnumerable<PortableDeviceObject> FindInternal(Queue<string> paths, IEnumerable<PortableDeviceObject> objectCollection)
+        private static IEnumerable<PortableDeviceObject> FindInternal(IEnumerable<PortableDeviceObject> objectCollection, IObjectEnumerateHelper enumerateHelper)
         {
             var res = new List<PortableDeviceObject>();
-            if (paths.Count == 0)
-                return res;
 
-            string pathNode = paths.Dequeue();
-
-            foreach (PortableDeviceObject deviceObject in objectCollection.Where(deviceObject => MatchesPath(deviceObject, pathNode)))
+            foreach (PortableDeviceObject deviceObject in objectCollection.Where(enumerateHelper.IsObjectMatching))
             {
-                if (paths.Count == 0)
+                if (enumerateHelper.IsLastNode)
                 {
                     res.Add(deviceObject);
                 }
@@ -277,20 +272,11 @@ namespace PortableDeviceLib
                 {
                     var folder = deviceObject as PortableDeviceContainerObject;
                     if (folder != null)
-                        res.AddRange(FindInternal(new Queue<string>(paths), folder.Childs));
+                        res.AddRange(FindInternal(folder.Childs, enumerateHelper.Next()));
                 }
             }
 
             return res;
-        }
-
-        private static bool MatchesPath(PortableDeviceObject portableDeviceObject, string pathNode)
-        {
-            // Defined content types that represent filesystem object don't contain extension
-            var file = portableDeviceObject as PortableDeviceFileObject;
-            if (file != null)
-                return Regex.IsMatch(file.FileName, pathNode, RegexOptions.IgnoreCase);
-            return Regex.IsMatch(portableDeviceObject.Name, pathNode, RegexOptions.IgnoreCase);
         }
 
         private IEnumerable<PortableDeviceFunctionalObject> ExtractStorageServices()

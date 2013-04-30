@@ -46,6 +46,7 @@ namespace PortableDeviceLib
         private string adviseCookie;
         private PortableDeviceEventCallback eventCallback;
         private Dictionary<string, object> values;
+        private IObjectEnumerateHelper enumerateHelper = new AllObjectEnumerateHelper();
 
         #region Constructors
 
@@ -209,7 +210,16 @@ namespace PortableDeviceLib
         /// </summary>
         public void RefreshContent()
         {
-            StartEnumerate();
+            StartEnumerate(new AllObjectEnumerateHelper());
+        }
+
+        /// <summary>
+        ///     Refresh content from device using IObjectEnumerateHelper
+        ///     When using PathEnumerateHelper, remember that root node is actual Phone, so it is used like new PathEnumerateHelper(".*/music/mp3")
+        /// </summary>
+        public void RefreshContent(IObjectEnumerateHelper enumerateHelper)
+        {
+            StartEnumerate(enumerateHelper);
         }
 
         /// <summary>
@@ -234,6 +244,14 @@ namespace PortableDeviceLib
         public override string ToString()
         {
             return IsConnected ? FriendlyName : DeviceId;
+        }
+
+        public void Update(ref IPortableDeviceContent pContent, PortableDeviceContainerObject parent)
+        {
+            lock (dispatcher)
+            {
+                Enumerate(ref pContent, parent.ID, parent, enumerateHelper, detectNewObjects: true);
+            }
         }
 
         #endregion
@@ -277,25 +295,55 @@ namespace PortableDeviceLib
             DeviceCapabilities.ExtractEvents(PortableDeviceClass);
         }
 
-        private void StartEnumerate()
+        private void StartEnumerate(IObjectEnumerateHelper enumHelper)
         {
             lock (dispatcher)
             {
+                enumerateHelper = enumHelper;
                 IPortableDeviceContent pContent;
                 PortableDeviceClass.Content(out pContent);
 
                 Content = new PortableDeviceFunctionalObject("DEVICE");
-                Enumerate(ref pContent, "DEVICE", Content);
+                Enumerate(ref pContent, "DEVICE", Content, enumerateHelper);
 
                 RaisePropertyChanged("Content");
             }
         }
+        
+        
 
-        internal void Enumerate(ref IPortableDeviceContent pContent, string parentID, PortableDeviceContainerObject node, bool detectNewObjects = false)
+        internal void Enumerate(ref IPortableDeviceContent pContent, string parentID, PortableDeviceContainerObject node, IObjectEnumerateHelper helper, bool detectNewObjects = false)
         {
             IPortableDeviceProperties properties;
             pContent.Properties(out properties);
 
+            foreach (var objectID in ExtractObjectIds(pContent, parentID))
+            {
+                if (detectNewObjects && ParentContainsChildsId(node, objectID))
+                    continue;
+
+                PortableDeviceObject current = ExtractInformation(properties, objectID);
+                if(!helper.IsObjectMatching(current))
+                    continue;
+
+                node.AddChild(current);
+
+                if (!helper.IsLastNode && current is PortableDeviceContainerObject)
+                    Enumerate(ref pContent, objectID, (PortableDeviceContainerObject)current, helper.Next(), detectNewObjects); 
+            }
+        }
+
+        private static bool ParentContainsChildsId(PortableDeviceContainerObject node, string objectID)
+        {
+            string copyId = objectID; // to remove different behavior in compiled code of nested foreach
+            var q = from child in node.Childs
+                    where child.ID == copyId
+                    select child;
+            return q.Any();
+        }
+
+        private IEnumerable<string> ExtractObjectIds(IPortableDeviceContent pContent, string parentID)
+        {
             IEnumPortableDeviceObjectIDs pEnum;
             pContent.EnumObjects(0, parentID, null, out pEnum);
 
@@ -306,19 +354,7 @@ namespace PortableDeviceLib
                 pEnum.Next(1, out objectID, ref cFetched);
 
                 if (cFetched <= 0) continue;
-
-                if (detectNewObjects)
-                {
-                    var q = from child in node.Childs
-                            where child.ID == objectID
-                            select child;
-                    if (q.Any()) continue;
-                }
-
-                PortableDeviceObject current = ExtractInformation(properties, objectID);
-                node.AddChild(current);
-                if (current is PortableDeviceContainerObject)
-                    Enumerate(ref pContent, objectID, (PortableDeviceContainerObject) current);
+                yield return objectID;
             } while (cFetched > 0);
         }
 
